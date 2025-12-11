@@ -4,8 +4,9 @@ import { auth } from "@/auth";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const session = await auth();
     if (session?.user?.role !== "ADMIN") {
@@ -13,10 +14,9 @@ export async function PUT(
     }
 
     const { name } = await req.json();
-    const { id } = await params;
 
     const tag = await Tag.findByIdAndUpdate(
-      id,
+      params.id,
       { name },
       { new: true, runValidators: true }
     );
@@ -42,16 +42,16 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const session = await auth();
     if (session?.user?.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params;
-    const tag = await Tag.findByIdAndDelete(id);
+    const tag = await Tag.findByIdAndDelete(params.id);
 
     if (!tag) {
       return NextResponse.json({ error: "Tag not found" }, { status: 404 });

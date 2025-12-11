@@ -6,6 +6,7 @@ export interface ICategory extends Document {
   name: string;
   slug: string;
   description?: string;
+  categoryItems?: string[];
   image?: string;
   parent?: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -36,6 +37,10 @@ const CategorySchema = new Schema<ICategory>(
       type: Schema.Types.ObjectId,
       ref: "Category",
       default: null,
+    },
+    categoryItems: {
+      type: [String],
+      default: [],
     },
   },
   {

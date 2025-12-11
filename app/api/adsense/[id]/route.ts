@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/db/mongoose";
+import dbConnect from "@/lib/db/mongoose";
 import { AdSenseStats } from "@/models/AdSenseStats";
 import { auth } from "@/auth";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const session = await auth();
     if (!session || session?.user?.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await dbConnect();
 
     const stat = await AdSenseStats.findByIdAndDelete(params.id);
 

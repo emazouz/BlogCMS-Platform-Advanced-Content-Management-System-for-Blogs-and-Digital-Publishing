@@ -10,39 +10,81 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 const categoriesData = [
-  { name: "Technical", description: "All things tech, coding, and gadgets." },
+  {
+    name: "Technical",
+    description: "The latest in code, gadgets, and digital innovation.",
+    image: "https://picsum.photos/seed/tech/800/600",
+  },
   {
     name: "Health & Beauty",
-    description: "Tips for a healthy lifestyle and beauty trends.",
+    description: "Radiate confidence with wellness tips and beauty secrets.",
+    image: "https://picsum.photos/seed/wellness/800/600",
   },
   {
     name: "Education",
-    description: "Learning resources, tutorials, and academic guides.",
+    description: "Empower your mind with tutorials and expert insights.",
+    image: "https://picsum.photos/seed/education/800/600",
   },
   {
     name: "Business",
-    description: "Business strategies, markets, and corporate news.",
+    description: "Navigate the corporate world with strategy and ease.",
+    image: "https://picsum.photos/seed/business/800/600",
   },
-  { name: "Travel", description: "Destinations, travel tips, and adventures." },
+  {
+    name: "Travel",
+    description: "Explore the unseen corners of the globe.",
+    image: "https://picsum.photos/seed/travel/800/600",
+  },
   {
     name: "Sports",
-    description: "Updates on football, basketball, and global sports.",
+    description: "The thrill of the game, delivered daily.",
+    image: "https://picsum.photos/seed/sports/800/600",
   },
   {
     name: "Entertainment",
-    description: "Movies, music, celebrities, and fun.",
+    description: "Your daily dose of culture, cinema, and fun.",
+    image: "https://picsum.photos/seed/entertainment/800/600",
   },
-  { name: "Fashion", description: "Latest trends, styles, and fashion shows." },
-  { name: "Games", description: "Video games, reviews, and esports." },
-  { name: "Kitchen", description: "Recipes, cooking tips, and culinary arts." },
+  {
+    name: "Fashion",
+    description: "Style that speaks before you say a word.",
+    image: "https://picsum.photos/seed/fashion/800/600",
+  },
+  {
+    name: "Games",
+    description: "Level up with reviews, walkthroughs, and news.",
+    image: "https://picsum.photos/seed/gaming/800/600",
+  },
+  {
+    name: "Kitchen",
+    description: "Culinary masterpieces you can create at home.",
+    image: "https://picsum.photos/seed/food/800/600",
+  },
   {
     name: "Stories & Novels",
-    description: "Fiction, short stories, and literature.",
+    description: "Dive into worlds crafted by imagination.",
+    image: "https://picsum.photos/seed/books/800/600",
   },
-  { name: "Islamic", description: "Islamic teachings, history, and culture." },
-  { name: "Commerce", description: "E-commerce, trading, and economy." },
-  { name: "General", description: "General topics and discussions." },
-  { name: "Home", description: "Home related topics" }, // Added as requested, though usually a nav item
+  {
+    name: "Islamic",
+    description: "Reflections on faith, history, and spirituality.",
+    image: "https://picsum.photos/seed/islamic/800/600",
+  },
+  {
+    name: "Commerce",
+    description: "Market trends and economic shifts decoded.",
+    image: "https://picsum.photos/seed/finance/800/600",
+  },
+  {
+    name: "General",
+    description: "Diverse topics for the curious mind.",
+    image: "https://picsum.photos/seed/general/800/600",
+  },
+  {
+    name: "Home",
+    description: "Design spaces that inspire and comfort.",
+    image: "https://picsum.photos/seed/interior/800/600",
+  },
 ];
 
 const tagsData = [
@@ -125,19 +167,22 @@ async function seedPosts() {
       });
     }
 
-    // 2. Create Categories
-    console.log("Creating categories...");
+    // 2. Create/Update Categories
+    console.log("Updating categories...");
     const categories = [];
     for (const catData of categoriesData) {
-      let category = await Category.findOne({ name: catData.name });
-      if (!category) {
-        category = await Category.create({
+      const category = await Category.findOneAndUpdate(
+        { name: catData.name },
+        {
           ...catData,
           slug: slugify(catData.name, { lower: true, strict: true }),
-        });
-        console.log(`✅ Created category: ${category.name}`);
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+      if (category) {
+        console.log(`✅ Updated/Created category: ${category.name}`);
+        categories.push(category);
       }
-      categories.push(category);
     }
 
     // 3. Create Tags

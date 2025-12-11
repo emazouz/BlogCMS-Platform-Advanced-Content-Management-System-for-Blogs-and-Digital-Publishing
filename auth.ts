@@ -3,7 +3,7 @@ import { authConfig } from "./auth.config";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod"; // You might need to install zod if not present, or use standard validation
 import bcrypt from "bcryptjs";
-import connectToDatabase from "@/lib/db/mongoose";
+import dbConnect from "@/lib/db/mongoose";
 import { User } from "@/models/User";
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
@@ -17,7 +17,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
-          await connectToDatabase();
+          await dbConnect();
           const user = await User.findOne({ email }).select("+password");
           if (!user) return null;
 

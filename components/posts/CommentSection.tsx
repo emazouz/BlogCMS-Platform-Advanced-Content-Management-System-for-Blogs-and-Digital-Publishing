@@ -25,7 +25,7 @@ interface Comment {
   post: string;
 }
 
-interface CurrentUser {
+export interface CurrentUser {
   id: string;
   name?: string;
   email?: string;

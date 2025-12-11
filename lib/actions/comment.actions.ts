@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import connectToDatabase from "@/lib/db/mongoose";
+import dbConnect from "@/lib/db/mongoose";
 import { Comment } from "@/models/Comment";
 import { revalidatePath } from "next/cache";
 
@@ -25,7 +25,7 @@ export async function createComment({
   path,
 }: CreateCommentParams) {
   try {
-    await connectToDatabase();
+    await dbConnect();
     // Assuming Post model is needed for updating rating
     const { Post } = await import("@/models/Post");
 
@@ -87,7 +87,7 @@ export async function createComment({
 
 export async function getCommentsByPostId(postId: string) {
   try {
-    await connectToDatabase();
+    await dbConnect();
 
     const comments = await Comment.find({
       post: postId,

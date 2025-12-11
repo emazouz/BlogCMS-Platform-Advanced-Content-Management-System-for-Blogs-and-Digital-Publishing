@@ -6,6 +6,7 @@ import PostCard from "@/components/posts/PostCard";
 import PostFilter from "@/components/posts/PostFilter";
 import Pagination from "@/components/shared/Pagination";
 import { Metadata } from "next";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "All Posts | DevBlog",
@@ -112,15 +113,28 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-12">
-      <div className="wrapper">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Blog Posts</h1>
-          <p className="text-zinc-500 dark:text-zinc-400">
-            Explore our collection of articles, tutorials, and news.
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
+      {/* Hero Section */}
+      <div className="relative w-full h-[400px] mb-12 flex items-center justify-center overflow-hidden">
+        <Image
+          src="https://picsum.photos/seed/writing/1920/600"
+          alt="Blog Posts Hero"
+          fill
+          className="object-cover brightness-[0.4]"
+          priority
+        />
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+          <h1 className="text-4xl md:text-6xl font-black text-white mb-6 uppercase tracking-tight">
+            Discover Our Stories
+          </h1>
+          <p className="text-lg md:text-2xl text-zinc-200 max-w-2xl mx-auto font-light leading-relaxed">
+            Deep dives, tutorials, and creative insights from our community of
+            writers.
           </p>
         </div>
+      </div>
 
+      <div className="wrapper">
         {/* Filters */}
         <PostFilter categories={categories} />
 

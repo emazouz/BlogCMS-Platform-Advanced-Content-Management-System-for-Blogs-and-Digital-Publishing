@@ -12,13 +12,14 @@ if (!MONGODB_URI) {
  * Global is used here to maintain a cached connection across hot reloads
  * in development by preventing connections growing exponentially
  */
-let cached = (global as any).mongoose;
+
+let cached = (globalThis as any).mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = (globalThis as any).mongoose = { conn: null, promise: null };
 }
 
-async function connectToDatabase() {
+async function dbConnect() {
   if (cached.conn) {
     return cached.conn;
   }
@@ -43,4 +44,4 @@ async function connectToDatabase() {
   return cached.conn;
 }
 
-export default connectToDatabase;
+export default dbConnect;

@@ -87,7 +87,6 @@ function CommentItem({ comment }: { comment: any }) {
             </span>
             <Badge
               variant={getCommentStatusVariant(comment.status)}
-              size="small"
             >
               {comment.status}
             </Badge>
@@ -141,14 +140,14 @@ function CommentItem({ comment }: { comment: any }) {
 
 function getCommentStatusVariant(
   status: string
-): "success" | "warning" | "secondary" | "error" {
+): "success" | "warning" | "secondary" | "destructive" {
   switch (status) {
     case "approved":
       return "success";
     case "pending":
       return "warning";
     case "spam":
-      return "error";
+      return "destructive";
     default:
       return "secondary";
   }

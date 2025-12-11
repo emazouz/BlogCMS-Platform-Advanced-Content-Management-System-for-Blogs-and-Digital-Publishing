@@ -4,22 +4,20 @@ import { auth } from "@/auth";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    if (session?.user?.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, description } = await req.json();
-
-    // Await params to fix Next.js 15 warning
-    const { id } = await params;
+    const { name, description, categoryItems } = await req.json();
 
     const category = await Category.findByIdAndUpdate(
-      id,
-      { name, description },
+      params.id,
+      { name, description, categoryItems },
       { new: true, runValidators: true }
     );
 
@@ -47,18 +45,16 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    if (session?.user?.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Await params to fix Next.js 15 warning
-    const { id } = await params;
-
-    const category = await Category.findByIdAndDelete(id);
+    const category = await Category.findByIdAndDelete(params.id);
 
     if (!category) {
       return NextResponse.json(

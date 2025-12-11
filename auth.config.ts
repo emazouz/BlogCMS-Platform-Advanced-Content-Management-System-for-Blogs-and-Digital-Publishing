@@ -27,6 +27,9 @@ export const authConfig = {
       if (token.role && session.user) {
         // @ts-ignore
         session.user.role = token.role;
+       
+        // @ts-ignore
+        session.user.image = token.image;
       }
       return session;
     },
@@ -35,11 +38,13 @@ export const authConfig = {
         token.id = user.id;
         // @ts-ignore
         token.role = user.role;
+        // @ts-ignore
+        token.image = user.image;
       }
 
       // Handle session update
       if (trigger === "update" && session) {
-        token = { ...token, ...session };
+        token = { ...token, ...session.user };
       }
 
       return token;

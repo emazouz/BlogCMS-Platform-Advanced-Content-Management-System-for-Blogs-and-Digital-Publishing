@@ -4,6 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { Toaster } from "@/components/ui/sonner";
+import CookieConsent from "@/components/privacy/CookieConsent";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,6 +41,8 @@ export default function RootLayout({
             <div className="flex min-h-screen flex-col">
               <main className="flex-1">{children}</main>
             </div>
+            <Toaster />
+            <CookieConsent />
           </ThemeProvider>
         </AuthProvider>
         {/* AdSense Script - Replace with your actual client ID */}

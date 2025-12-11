@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import connectToDatabase from "@/lib/db/mongoose";
+import dbConnect from "@/lib/db/mongoose";
 import { Post } from "@/models/Post";
 import { User } from "@/models/User"; // Ensure model registration
 import { Category } from "@/models/Category"; // Ensure model registration
@@ -28,7 +28,7 @@ export default async function ViewPostPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await connectToDatabase();
+  await dbConnect();
 
   const post = await Post.findById(id)
     .populate("category", "name")

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/db/mongoose";
+import dbConnect from "@/lib/db/mongoose";
 import { AdSenseStats } from "@/models/AdSenseStats";
 import { auth } from "@/auth";
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await dbConnect();
 
     const stats = await AdSenseStats.find({}).sort({ date: -1 });
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Date is required" }, { status: 400 });
     }
 
-    await connectToDatabase();
+    await dbConnect();
 
     // Check if date already exists
     const existing = await AdSenseStats.findOne({ date: new Date(date) });

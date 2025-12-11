@@ -8,6 +8,20 @@ export interface IUser {
   password: string;
   role: "admin" | "editor" | "author";
   image?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  socials?: {
+    twitter?: string;
+    github?: string;
+    linkedin?: string;
+    facebook?: string;
+  };
+  notificationPreferences?: {
+    email: boolean;
+    push: boolean;
+    marketing: boolean;
+  };
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -41,6 +55,20 @@ const UserSchema = new Schema(
     },
     image: {
       type: String,
+    },
+    bio: String,
+    location: String,
+    website: String,
+    socials: {
+      twitter: String,
+      github: String,
+      linkedin: String,
+      facebook: String,
+    },
+    notificationPreferences: {
+      email: { type: Boolean, default: true },
+      push: { type: Boolean, default: true },
+      marketing: { type: Boolean, default: false },
     },
     isActive: {
       type: Boolean,

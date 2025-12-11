@@ -17,17 +17,21 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    if (session?.user?.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, description } = await req.json();
+    const { name, description, categoryItems } = await req.json();
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const category = await Category.create({ name, description });
+    const category = await Category.create({
+      name,
+      description,
+      categoryItems,
+    });
     return NextResponse.json(category, { status: 201 });
   } catch (error: any) {
     if (error.code === 11000) {

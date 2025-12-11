@@ -12,6 +12,7 @@ interface Category {
   description: string;
   slug: string;
   count?: number;
+  categoryItems?: string[];
 }
 
 export default function CategoriesPage() {
@@ -19,8 +20,14 @@ export default function CategoriesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "" });
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    categoryItems: [] as string[],
+  });
   const [searchQuery, setSearchQuery] = useState("");
+  const [newItem, setNewItem] = useState("");
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -61,7 +68,7 @@ export default function CategoriesPage() {
       toast.success(editingCategory ? "Category updated" : "Category created");
       setIsModalOpen(false);
       setEditingCategory(null);
-      setFormData({ name: "", description: "" });
+      setFormData({ name: "", description: "", categoryItems: [] });
       fetchCategories();
     } catch (error: any) {
       toast.error(error.message);
@@ -73,6 +80,7 @@ export default function CategoriesPage() {
     setFormData({
       name: category.name,
       description: category.description || "",
+      categoryItems: category.categoryItems || [],
     });
     setIsModalOpen(true);
   };
@@ -96,8 +104,30 @@ export default function CategoriesPage() {
 
   const openModal = () => {
     setEditingCategory(null);
-    setFormData({ name: "", description: "" });
+    setFormData({ name: "", description: "", categoryItems: [] });
     setIsModalOpen(true);
+  };
+
+  const addCategoryItem = (e: React.KeyboardEvent | React.MouseEvent) => {
+    e.preventDefault();
+    if (newItem.trim()) {
+      if (!formData.categoryItems.includes(newItem.trim())) {
+        setFormData({
+          ...formData,
+          categoryItems: [...formData.categoryItems, newItem.trim()],
+        });
+      }
+      setNewItem("");
+    }
+  };
+
+  const removeCategoryItem = (itemToRemove: string) => {
+    setFormData({
+      ...formData,
+      categoryItems: formData.categoryItems.filter(
+        (item) => item !== itemToRemove
+      ),
+    });
   };
 
   const filteredCategories = categories.filter((cat) =>
@@ -194,6 +224,57 @@ export default function CategoriesPage() {
               placeholder="Optional description..."
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category Items (Mega Menu)
+            </label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCategoryItem(e);
+                  }
+                }}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                placeholder="Add sub-item..."
+              />
+              <button
+                type="button"
+                onClick={addCategoryItem}
+                className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+              >
+                Add
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-gray-50 rounded-lg border border-gray-100">
+              {formData.categoryItems.map((item, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
+                >
+                  {item}
+                  <button
+                    type="button"
+                    onClick={() => removeCategoryItem(item)}
+                    className="ml-1.5 focus:outline-none hover:text-primary-900"
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+              {formData.categoryItems.length === 0 && (
+                <span className="text-gray-400 text-sm italic">
+                  No items added
+                </span>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"

@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import connectToDatabase from "@/lib/db/mongoose";
+import dbConnect from "@/lib/db/mongoose";
 import { Post } from "@/models/Post";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -38,7 +38,7 @@ export async function createPost(formData: FormData) {
     console.error("Failed to parse tags", e);
   }
 
-  await connectToDatabase();
+  await dbConnect();
 
   await Post.create({
     title,
@@ -101,7 +101,7 @@ export async function updatePost(postId: string, formData: FormData) {
     console.error("Failed to parse tags", e);
   }
 
-  await connectToDatabase();
+  await dbConnect();
 
   await Post.findByIdAndUpdate(postId, {
     title,
@@ -140,7 +140,7 @@ export async function deletePost(postId: string) {
     throw new Error("Unauthorized");
   }
 
-  await connectToDatabase();
+  await dbConnect();
   await Post.findByIdAndDelete(postId);
   revalidatePath("/admin");
 }
@@ -151,7 +151,7 @@ export async function togglePublish(postId: string, currentState: boolean) {
     throw new Error("Unauthorized");
   }
 
-  await connectToDatabase();
+  await dbConnect();
   await Post.findByIdAndUpdate(postId, { published: !currentState });
   revalidatePath("/admin");
 }
@@ -165,7 +165,7 @@ export async function ratePost(postId: string, rating: number, path: string) {
 
     // For now, let's proceed. If user is logged in, we save the rating.
 
-    await connectToDatabase();
+    await dbConnect();
 
     // We need to fetch the current post to calculate the new average
     const post = await Post.findById(postId);
@@ -266,7 +266,7 @@ export async function ratePost(postId: string, rating: number, path: string) {
 // Sidebar Data Fetching
 export async function getRecentPosts(limit = 5) {
   try {
-    await connectToDatabase();
+    await dbConnect();
     const posts = await Post.find({ status: "published" })
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -282,7 +282,7 @@ export async function getRecentPosts(limit = 5) {
 
 export async function getPopularPosts(limit = 5) {
   try {
-    await connectToDatabase();
+    await dbConnect();
     // Sort by rating first, then views
     const posts = await Post.find({ status: "published" })
       .sort({ rating: -1, views: -1 })

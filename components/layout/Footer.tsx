@@ -6,7 +6,7 @@ import { Github, Twitter, Linkedin } from "lucide-react";
 export default function Footer() {
   return (
     <footer className="bg-background border-t">
-      <div className="container mx-auto py-10 px-4 md:px-6">
+      <div className="wrapper py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <h3 className="text-lg font-bold">BlogPlatform</h3>
@@ -20,17 +20,20 @@ export default function Footer() {
             <h4 className="text-sm font-semibold">Legal</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/privacy" className="hover:text-foreground">
+                <Link href="/privacy-policy" className="hover:text-foreground">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-foreground">
+                <Link
+                  href="/terms-of-service"
+                  className="hover:text-foreground"
+                >
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="/cookies" className="hover:text-foreground">
+                <Link href="/cookie-policy" className="hover:text-foreground">
                   Cookie Policy
                 </Link>
               </li>

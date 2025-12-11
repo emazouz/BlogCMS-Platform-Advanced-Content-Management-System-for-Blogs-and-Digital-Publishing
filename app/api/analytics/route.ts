@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/db/mongoose";
+import dbConnect from "@/lib/db/mongoose";
 import { PageView } from "@/models/PageView";
 import { AdSenseStats } from "@/models/AdSenseStats";
 import { auth } from "@/auth";
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await dbConnect();
 
     // Date ranges
     const now = new Date();

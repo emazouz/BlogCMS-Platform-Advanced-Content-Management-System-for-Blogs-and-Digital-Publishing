@@ -1,4 +1,4 @@
-import connectToDatabase from "@/lib/db/mongoose";
+import dbConnect from "@/lib/db/mongoose";
 import { Post } from "@/models/Post";
 // import { updatePost } from "@/lib/actions/post.actions"; // Removed unused import assignment
 import EditPostForm from "./EditPostForm";
@@ -10,7 +10,7 @@ export default async function EditPostPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await connectToDatabase();
+  await dbConnect();
   const post = await Post.findById(id);
 
   if (!post) {

@@ -1,32 +1,50 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  Bell,
-  Check,
-  Trash2,
-  Info,
-  AlertTriangle,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { Bell, Send, Trash2 } from "lucide-react";
 
 interface Notification {
   _id: string;
-  type: "info" | "success" | "warning" | "error";
   title: string;
   message: string;
-  link?: string;
-  read: boolean;
+  recipient?: string;
+  type: string;
   createdAt: string;
 }
 
-export default function NotificationsPage() {
+export default function AdminNotificationsPage() {
+  const { data: session } = useSession();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    message: "",
+    recipientId: "",
+    type: "info",
+    link: "",
+    broadcast: false,
+  });
 
   useEffect(() => {
     fetchNotifications();
@@ -34,213 +52,261 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch("/api/notifications");
-      const data = await response.json();
-      if (data.notifications) {
+      const res = await fetch("/api/notifications");
+      if (res.ok) {
+        const data = await res.json();
         setNotifications(data.notifications);
       }
     } catch (error) {
-      console.error("Error fetching notifications:", error);
-    } finally {
-      setLoading(false);
+      // Silent error
     }
   };
 
-  const markAsRead = async (id?: string) => {
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
     try {
-      const response = await fetch("/api/notifications", {
-        method: "PATCH",
+      const res = await fetch("/api/notifications", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(id ? { id, read: true } : { read: true }),
+        body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        if (id) {
-          setNotifications((prev) =>
-            prev.map((n) => (n._id === id ? { ...n, read: true } : n))
-          );
-        } else {
-          setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-        }
+      if (res.ok) {
+        toast.success(
+          formData.broadcast
+            ? "Broadcast sent successfully"
+            : "Notification sent successfully"
+        );
+        setFormData({
+          title: "",
+          message: "",
+          recipientId: "",
+          type: "info",
+          link: "",
+          broadcast: false,
+        });
+        fetchNotifications();
+      } else {
+        const error = await res.json();
+        toast.error(error.error || "Failed to send notification");
       }
     } catch (error) {
-      console.error("Error marking as read:", error);
+      toast.error("Failed to send notification");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const deleteNotification = async (id?: string) => {
-    if (
-      !confirm(id ? "Delete this notification?" : "Delete ALL notifications?")
-    ) {
-      return;
-    }
-
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure?")) return;
     try {
-      const url = id ? `/api/notifications?id=${id}` : "/api/notifications";
-
-      const response = await fetch(url, {
+      const res = await fetch(`/api/notifications?id=${id}`, {
         method: "DELETE",
       });
-
-      if (response.ok) {
-        if (id) {
-          setNotifications((prev) => prev.filter((n) => n._id !== id));
-        } else {
-          setNotifications([]);
-        }
+      if (res.ok) {
+        toast.success("Deleted");
+        setNotifications((prev) => prev.filter((n) => n._id !== id));
       }
     } catch (error) {
-      console.error("Error deleting notification:", error);
+      toast.error("Failed to delete");
     }
   };
 
-  const filteredNotifications = notifications.filter((n) => {
-    if (filter === "unread") return !n.read;
-    return true;
-  });
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "success":
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case "warning":
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
-      case "error":
-        return <AlertCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return <Info className="h-5 w-5 text-blue-500" />;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="p-12 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="text-gray-600 mt-4">Loading notifications...</p>
-      </div>
-    );
+  if (!session || session.user.role !== "admin") {
+    return <div className="p-8 text-center text-red-500">Unauthorized</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Bell className="h-8 w-8 text-primary-600" />
-            Notifications
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Manage your system alerts and updates
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => markAsRead()}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition"
-          >
-            <Check className="h-4 w-4" />
-            Mark all read
-          </button>
-          <button
-            onClick={() => deleteNotification()}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition"
-          >
-            <Trash2 className="h-4 w-4" />
-            Clear all
-          </button>
-        </div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-4 border-b border-gray-200 flex gap-4">
-          <button
-            onClick={() => setFilter("all")}
-            className={`text-sm font-medium px-3 py-1.5 rounded-md transition ${
-              filter === "all"
-                ? "bg-gray-100 text-gray-900"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter("unread")}
-            className={`text-sm font-medium px-3 py-1.5 rounded-md transition ${
-              filter === "unread"
-                ? "bg-gray-100 text-gray-900"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Unread
-          </button>
-        </div>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5" />
+              Send Notification
+            </CardTitle>
+            <CardDescription>
+              Send alerts to users or broadcast to everyone.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSend} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  placeholder="Notification Title"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  required
+                />
+              </div>
 
-        <div className="divide-y divide-gray-200">
-          {filteredNotifications.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No notifications found</p>
-            </div>
-          ) : (
-            filteredNotifications.map((notification) => (
-              <div
-                key={notification._id}
-                className={`p-4 flex gap-4 hover:bg-gray-50 transition ${
-                  !notification.read ? "bg-blue-50/50" : ""
-                }`}
-              >
-                <div className="mt-1">{getIcon(notification.type)}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3
-                        className={`text-sm font-medium ${
-                          !notification.read ? "text-gray-900" : "text-gray-700"
-                        }`}
-                      >
-                        {notification.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {notification.message}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="flex items-center text-xs text-gray-500">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {formatDistanceToNow(new Date(notification.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </span>
-                      <button
-                        onClick={() => deleteNotification(notification._id)}
-                        className="text-gray-400 hover:text-red-500 p-1 rounded-md transition"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                  {notification.link && (
-                    <a
-                      href={notification.link}
-                      className="text-sm text-primary-600 hover:text-primary-700 font-medium mt-2 inline-block"
-                    >
-                      View details →
-                    </a>
-                  )}
-                  {!notification.read && (
-                    <button
-                      onClick={() => markAsRead(notification._id)}
-                      className="text-xs text-primary-600 hover:text-primary-700 font-medium mt-2 ml-4"
-                    >
-                      Mark as read
-                    </button>
-                  )}
+              <div className="space-y-2">
+                <Label htmlFor="message">Message</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Notification content..."
+                  value={formData.message}
+                  onChange={(e) =>
+                    setFormData({ ...formData, message: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(val) =>
+                      setFormData({ ...formData, type: val })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="info">Info</SelectItem>
+                      <SelectItem value="success">Success</SelectItem>
+                      <SelectItem value="warning">Warning</SelectItem>
+                      <SelectItem value="error">Error</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="link">Link (Optional)</Label>
+                  <Input
+                    id="link"
+                    placeholder="/posts/..."
+                    value={formData.link}
+                    onChange={(e) =>
+                      setFormData({ ...formData, link: e.target.value })
+                    }
+                  />
                 </div>
               </div>
-            ))
-          )}
-        </div>
+
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center space-x-2 border p-3 rounded-md">
+                  <Checkbox
+                    id="broadcast"
+                    checked={formData.broadcast}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        broadcast: checked as boolean,
+                        recipientId: "",
+                      })
+                    }
+                  />
+                  <Label
+                    htmlFor="broadcast"
+                    className="font-semibold cursor-pointer"
+                  >
+                    Broadcast to ALL Users
+                  </Label>
+                </div>
+              </div>
+
+              {!formData.broadcast && (
+                <div className="space-y-2">
+                  <Label htmlFor="recipient">Recipient ID</Label>
+                  <Input
+                    id="recipient"
+                    placeholder="User ID (e.g. 65c...)"
+                    value={formData.recipientId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, recipientId: e.target.value })
+                    }
+                    required={!formData.broadcast}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Copy ID from the Users page.
+                  </p>
+                </div>
+              )}
+
+              <Button className="w-full" disabled={isLoading}>
+                {isLoading ? "Sending..." : "Send Notification"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* History / List */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Recent Activity
+            </CardTitle>
+            <CardDescription>
+              Latest notifications sent (showing yours).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {notifications.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No notifications found
+                </p>
+              ) : (
+                notifications.map((n) => (
+                  <div
+                    key={n._id}
+                    className="flex items-start justify-between border-b pb-3 last:border-0 last:pb-0"
+                  >
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm">{n.title}</p>
+                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                        {n.message}
+                      </p>
+                      <div className="flex gap-2 text-[10px] items-center text-muted-foreground">
+                        <span
+                          className={`px-1.5 py-0.5 rounded-full capitalize text-white
+                                            ${
+                                              n.type === "error"
+                                                ? "bg-red-500"
+                                                : n.type === "warning"
+                                                ? "bg-yellow-500"
+                                                : n.type === "success"
+                                                ? "bg-green-500"
+                                                : "bg-blue-500"
+                                            }
+                                        `}
+                        >
+                          {n.type}
+                        </span>
+                        <span>
+                          {new Date(n.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-100"
+                      onClick={() => handleDelete(n._id)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

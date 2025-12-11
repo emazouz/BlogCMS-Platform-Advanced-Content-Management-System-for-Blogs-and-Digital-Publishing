@@ -1,13 +1,13 @@
 "use server";
 
-import connectToDatabase from "@/lib/db/mongoose";
+import dbConnect from "@/lib/db/mongoose";
 import { Comment } from "@/models/Comment";
 import { Rating } from "@/models/Rating";
 import { User } from "@/models/User";
 
 export async function getTopCommenters(limit = 5) {
   try {
-    await connectToDatabase();
+    await dbConnect();
 
     // Aggregate comments by authorEmail (since Comment model uses email/name often, but check if authorId is available)
     // The Comment model has authorId field ? Let's check Comment.ts again.
@@ -41,7 +41,7 @@ export async function getTopCommenters(limit = 5) {
 
 export async function getTopRaters(limit = 5) {
   try {
-    await connectToDatabase();
+    await dbConnect();
 
     // We need to import User model to ensure it's registered if we populate?
     // Actually aggregate is fine.

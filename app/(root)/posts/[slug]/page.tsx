@@ -11,7 +11,7 @@ import "@/models/User"; // Ensure registration
 import AdBanner from "@/components/ads/AdBanner";
 import ShareButtons from "@/components/posts/ShareButtons";
 import RelatedPosts from "@/components/posts/RelatedPosts";
-import CommentSection from "@/components/posts/CommentSection";
+import CommentSection, { CurrentUser } from "@/components/posts/CommentSection";
 import { auth } from "@/auth";
 import { getCommentsByPostId } from "@/lib/actions/comment.actions";
 import { getRecentPosts, getPopularPosts } from "@/lib/actions/post.actions";
@@ -33,10 +33,10 @@ async function getPost(slug: string) {
   await connectDB();
 
   // Find main post
-  const post = await Post.findOne({ slug, status: "published" })
+  const post = (await Post.findOne({ slug, status: "published" })
     .populate("author", "name username image bio") // Fetch bio if available
     .populate("category", "name slug")
-    .lean();
+    .lean()) as any;
 
   if (!post) return null;
 
@@ -268,7 +268,7 @@ const PostPage = async ({ params }: Props) => {
               <CommentSection
                 postId={post._id}
                 comments={comments}
-                currentUser={session?.user || "NO_NAME"}
+                currentUser={session?.user as CurrentUser || null}
                 rating={post.rating || 0}
                 ratingCount={post.ratingCount || 0}
               />

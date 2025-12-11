@@ -1,6 +1,7 @@
 import mongoose, { Schema, Model, Document } from "mongoose";
 
 export interface INotification extends Document {
+  recipient?: string; // If null, global notification
   type: "info" | "success" | "warning" | "error";
   title: string;
   message: string;
@@ -11,6 +12,7 @@ export interface INotification extends Document {
 
 const NotificationSchema = new Schema<INotification>(
   {
+    recipient: { type: Schema.Types.ObjectId, ref: "User" },
     type: {
       type: String,
       enum: ["info", "success", "warning", "error"],
