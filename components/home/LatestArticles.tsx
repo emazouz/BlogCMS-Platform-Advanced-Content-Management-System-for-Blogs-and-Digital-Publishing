@@ -14,7 +14,7 @@ export default function LatestArticles({ posts }: { posts: PostType[] }) {
 
   return (
     <section className="py-16 bg-zinc-50 dark:bg-zinc-900/50">
-      <div className="container mx-auto px-6">
+      <div className="wrapper">
         <div className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-3xl font-bold mb-2">Latest Articles</h2>

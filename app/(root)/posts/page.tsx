@@ -115,7 +115,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
       {/* Hero Section */}
-      <div className="relative w-full h-[400px] mb-12 flex items-center justify-center overflow-hidden">
+      <div className="relative w-full h-[calc(100vh-4rem)] mb-12 flex items-center justify-center overflow-hidden">
         <Image
           src="https://picsum.photos/seed/writing/1920/600"
           alt="Blog Posts Hero"

@@ -2,54 +2,63 @@ import Link from "next/link";
 import Image from "next/image";
 import connectDB from "@/lib/db/mongoose";
 import { Post } from "@/models/Post";
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdBanner from "@/components/ads/AdBanner";
 import Hero from "@/components/home/Hero";
 import "@/models/User"; // Ensure User model is registered
 import "@/models/Category"; // Ensure Category model is registered
-import { Category, ICategory } from "@/models/Category"; // Ensure Category model is registered
+import { Category } from "@/models/Category"; // Ensure Category model is registered
 import MostPopular from "@/components/home/MostPopular";
 import LatestArticles from "@/components/home/LatestArticles";
 import HighestRated from "@/components/home/HighestRated";
 import AllCategories from "@/components/home/AllCategories";
 import RapidGrowth from "@/components/home/RapidGrowth";
+import FAQ from "@/components/home/FAQ";
 import HomeReviews from "@/components/home/HomeReviews";
 import Testimonial from "@/models/Testimonial";
-import WaveContainer from "@/components/ui/WaveContainer";
+import { FAQ as FAQModel } from "@/models/FAQ";
 
 async function getData() {
   await connectDB();
 
   // Parallel fetch for all sections
-  const [latestPosts, popularPosts, ratedPosts, categories, testimonials] =
-    await Promise.all([
-      // 1. Latest Posts
-      Post.find({ status: "published" })
-        .sort({ createdAt: -1 })
-        .limit(6)
-        .populate("author", "username")
-        .populate("category", "name"),
+  const [
+    latestPosts,
+    popularPosts,
+    ratedPosts,
+    categories,
+    testimonials,
+    faqs,
+  ] = await Promise.all([
+    // 1. Latest Posts
+    Post.find({ status: "published" })
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .populate("author", "username")
+      .populate("category", "name"),
 
-      // 2. Most Popular (by views)
-      Post.find({ status: "published" })
-        .sort({ views: -1 })
-        .limit(4)
-        .populate("author", "username")
-        .populate("category", "name"),
+    // 2. Most Popular (by views)
+    Post.find({ status: "published" })
+      .sort({ views: -1 })
+      .limit(4)
+      .populate("author", "username")
+      .populate("category", "name"),
 
-      // 3. Highest Rated (by rating)
-      Post.find({ status: "published" })
-        .sort({ rating: -1 })
-        .limit(3)
-        .populate("author", "username"),
+    // 3. Highest Rated (by rating)
+    Post.find({ status: "published" })
+      .sort({ rating: -1 })
+      .limit(3)
+      .populate("author", "username"),
 
-      // 4. Categories
-      Category.find({}).limit(12),
+    // 4. Categories
+    Category.find({}).limit(12),
 
-      // 5. Testimonials
-      Testimonial.find({ isApproved: true }).sort({ createdAt: -1 }).limit(6),
-    ]);
+    // 5. Testimonials
+    Testimonial.find({ isApproved: true }).sort({ createdAt: -1 }).limit(6),
+
+    // 6. FAQs
+    FAQModel.find({ isPublished: true }).sort({ order: 1 }),
+  ]);
 
   // Helper to serialize
   const serialize = (data: any) => JSON.parse(JSON.stringify(data));
@@ -66,12 +75,19 @@ async function getData() {
     ratedPosts: formatPosts(serialize(ratedPosts)),
     categories: serialize(categories),
     testimonials: serialize(testimonials),
+    faqs: serialize(faqs),
   };
 }
 
 export default async function Home() {
-  const { latestPosts, popularPosts, ratedPosts, categories, testimonials } =
-    await getData();
+  const {
+    latestPosts,
+    popularPosts,
+    ratedPosts,
+    categories,
+    testimonials,
+    faqs,
+  } = await getData();
 
   return (
     <div className="min-h-screen font-sans transition-colors duration-300">
@@ -117,7 +133,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <div className="wrapper">
+      <div>
         {/* Navbar Placeholder */}
         <div className="">
           <AdBanner dataAdSlot="HOME_LEADERBOARD" />
@@ -130,9 +146,7 @@ export default async function Home() {
         <MostPopular posts={popularPosts} />
 
         {/* MID-PAGE AD: Capture users scrolling down */}
-        <WaveContainer variant="teal">
-          <AdBanner dataAdSlot="HOME_MID_CONTENT" />
-        </WaveContainer>
+        <AdBanner dataAdSlot="HOME_MID_CONTENT" />
 
         {/* 3. Latest Articles */}
         <LatestArticles posts={latestPosts} />
@@ -145,16 +159,14 @@ export default async function Home() {
           <AllCategories categories={categories} />
         </div>
 
-        {/* LOWER-PAGE AD: Break before reviews */}
-        <WaveContainer variant="default">
-          <AdBanner dataAdSlot="HOME_LOWER_CONTENT" />
-        </WaveContainer>
-
         {/* 6. Reviews Section */}
         <HomeReviews testimonials={testimonials} />
 
         {/* 7. Rapid Growth Stats */}
         <RapidGrowth />
+
+        {/* 8. FAQ Section */}
+        <FAQ faqs={faqs} />
       </div>
     </div>
   );

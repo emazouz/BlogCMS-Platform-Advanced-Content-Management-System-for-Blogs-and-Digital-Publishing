@@ -10,7 +10,7 @@ export default function MostPopular({ posts }: { posts: PostType[] }) {
 
   return (
     <section className="py-16 bg-white dark:bg-zinc-950">
-      <div className="container mx-auto px-6">
+      <div className="wrapper">
         <div className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-3xl font-bold mb-2">Most Popular</h2>

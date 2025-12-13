@@ -36,7 +36,7 @@ export default function RapidGrowth() {
 
   return (
     <section className="py-24 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
-      <div className="container mx-auto px-6">
+      <div className="wrapper">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
             Rapid Growth. <br />

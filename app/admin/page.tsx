@@ -17,18 +17,18 @@ export default async function DashboardPage() {
   const session = await auth();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-background">
       {/* Welcome Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Welcome back, {session?.user?.name || "Admin"}! 👋
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Here's what's happening with your blog today.
           </p>
         </div>
-        <div className="text-right text-sm text-gray-500">
+        <div className="text-right text-sm text-muted-foreground">
           {new Date().toLocaleDateString("en-US", {
             weekday: "long",
             year: "numeric",
@@ -107,3 +107,6 @@ function TableSkeleton() {
     </div>
   );
 }
+
+
+
