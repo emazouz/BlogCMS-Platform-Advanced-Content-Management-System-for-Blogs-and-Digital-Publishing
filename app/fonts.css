@@ -1,0 +1,101 @@
+/* Surgena Font Family */
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-Light.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-Light.otf") format("opentype");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-LightItalic.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-LightItalic.otf") format("opentype");
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-Regular.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-Regular.otf") format("opentype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-Italic.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-Italic.otf") format("opentype");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-Medium.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-Medium.otf") format("opentype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-MediumItalic.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-MediumItalic.otf") format("opentype");
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-SemiBold.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-SemiBold.otf") format("opentype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-SemiBoldItalic.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-SemiBoldItalic.otf") format("opentype");
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-Bold.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-Bold.otf") format("opentype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Surgena";
+  src: url("/fonts/Web-PS/Surgena-BoldItalic.woff2") format("woff2"),
+    url("/fonts/Web-PS/Surgena-BoldItalic.otf") format("opentype");
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}

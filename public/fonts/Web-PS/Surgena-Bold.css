@@ -1,0 +1,9 @@
+/* Webfont: Surgena-Bold */@font-face {
+    font-family: 'Surgena';
+    src: url('Surgena-Bold.woff2') format('woff2'), /* Modern Browsers */
+         url('Surgena-Bold.otf') format('opentype'); /* Safari, Android, iOS */
+             font-style: normal;
+    font-weight: bold;
+    text-rendering: optimizeLegibility;
+}
+

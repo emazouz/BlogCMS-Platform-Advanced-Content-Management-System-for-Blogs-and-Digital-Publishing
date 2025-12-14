@@ -1,0 +1,9 @@
+/* Webfont: Surgena-Regular */@font-face {
+    font-family: 'Surgena';
+    src: url('Surgena-Regular.woff2') format('woff2'), /* Modern Browsers */
+         url('Surgena-Regular.otf') format('opentype'); /* Safari, Android, iOS */
+             font-style: normal;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+

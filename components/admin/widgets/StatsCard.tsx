@@ -1,4 +1,5 @@
-// /components/admin/widgets/StatsCards.tsx
+"use client";
+
 import {
   FileText,
   Eye,
@@ -6,137 +7,27 @@ import {
   DollarSign,
   TrendingUp,
   TrendingDown,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
-import connectDB from "@/lib/db/mongoose";
-import { Post } from "@/models/Post";
-import { Comment } from "@/models/Comment";
-import { PageView } from "@/models/PageView";
-import { AdSenseStats } from "@/models/AdSenseStats";
+import { useStats } from "@/hooks/use-stats";
+import {
+  formatNumber,
+  formatCurrency,
+  formatPercentage,
+} from "@/lib/utils/number-utils";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
-async function getStats() {
-  await connectDB();
-
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-
-  // Total Posts
-  const totalPosts = await Post.countDocuments({ status: "published" });
-  const postsThisMonth = await Post.countDocuments({
-    status: "published",
-    createdAt: { $gte: startOfMonth },
-  });
-  const postsLastMonth = await Post.countDocuments({
-    status: "published",
-    createdAt: { $gte: startOfLastMonth, $lt: startOfMonth },
-  });
-
-  // Monthly Views
-  const viewsThisMonth = await PageView.aggregate([
-    { $match: { date: { $gte: startOfMonth } } },
-    { $group: { _id: null, total: { $sum: "$views" } } },
-  ]);
-  const viewsLastMonth = await PageView.aggregate([
-    { $match: { date: { $gte: startOfLastMonth, $lt: startOfMonth } } },
-    { $group: { _id: null, total: { $sum: "$views" } } },
-  ]);
-
-  // Comments
-  const totalComments = await Comment.countDocuments({ status: "approved" });
-  const commentsThisMonth = await Comment.countDocuments({
-    status: "approved",
-    createdAt: { $gte: startOfMonth },
-  });
-  const commentsLastMonth = await Comment.countDocuments({
-    status: "approved",
-    createdAt: { $gte: startOfLastMonth, $lt: startOfMonth },
-  });
-
-  // AdSense Revenue
-  const revenueThisMonth = await AdSenseStats.aggregate([
-    { $match: { date: { $gte: startOfMonth } } },
-    { $group: { _id: null, total: { $sum: "$earnings" } } },
-  ]);
-  const revenueLastMonth = await AdSenseStats.aggregate([
-    { $match: { date: { $gte: startOfLastMonth, $lt: startOfMonth } } },
-    { $group: { _id: null, total: { $sum: "$earnings" } } },
-  ]);
-
-  const calculateChange = (current: number, previous: number) => {
-    if (previous === 0) return current > 0 ? 100 : 0;
-    return Math.round(((current - previous) / previous) * 100);
-  };
-
-  return {
-    totalPosts,
-    postsChange: calculateChange(postsThisMonth, postsLastMonth),
-
-    monthlyViews: viewsThisMonth[0]?.total || 0,
-    viewsChange: calculateChange(
-      viewsThisMonth[0]?.total || 0,
-      viewsLastMonth[0]?.total || 0
-    ),
-
-    totalComments,
-    commentsChange: calculateChange(commentsThisMonth, commentsLastMonth),
-
-    adsenseRevenue: revenueThisMonth[0]?.total || 0,
-    revenueChange: calculateChange(
-      revenueThisMonth[0]?.total || 0,
-      revenueLastMonth[0]?.total || 0
-    ),
-  };
-}
-
-export async function StatsCards() {
-  const stats = await getStats();
-
-  const cards = [
-    {
-      title: "Total Posts",
-      value: stats.totalPosts.toLocaleString(),
-      change: stats.postsChange,
-      icon: FileText,
-      color: "blue" as const,
-      bgColor: "bg-blue-50",
-      iconColor: "text-blue-600",
-    },
-    {
-      title: "Monthly Views",
-      value: stats.monthlyViews.toLocaleString(),
-      change: stats.viewsChange,
-      icon: Eye,
-      color: "green" as const,
-      bgColor: "bg-green-50",
-      iconColor: "text-green-600",
-    },
-    {
-      title: "Comments",
-      value: stats.totalComments.toLocaleString(),
-      change: stats.commentsChange,
-      icon: MessageSquare,
-      color: "purple" as const,
-      bgColor: "bg-purple-50",
-      iconColor: "text-purple-600",
-    },
-    {
-      title: "AdSense Revenue",
-      value: `$${stats.adsenseRevenue.toFixed(2)}`,
-      change: stats.revenueChange,
-      icon: DollarSign,
-      color: "yellow" as const,
-      bgColor: "bg-yellow-50",
-      iconColor: "text-yellow-600",
-    },
-  ];
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {cards.map((card) => (
-        <StatsCard key={card.title} {...card} />
-      ))}
-    </div>
-  );
+// Types
+interface StatsCardConfig {
+  title: string;
+  value: string;
+  change: number;
+  icon: React.ElementType;
+  color: "blue" | "green" | "purple" | "yellow";
+  bgColor: string;
+  iconColor: string;
 }
 
 interface StatsCardProps {
@@ -146,6 +37,23 @@ interface StatsCardProps {
   icon: React.ElementType;
   bgColor: string;
   iconColor: string;
+  isLoading?: boolean;
+}
+
+// Sub-components
+function StatsCardSkeleton() {
+  return (
+    <div className="bg-card rounded-lg border border-border p-6 animate-pulse">
+      <div className="flex items-start justify-between">
+        <div className="flex-1 space-y-3">
+          <div className="h-4 bg-muted rounded w-24" />
+          <div className="h-8 bg-muted rounded w-32" />
+          <div className="h-4 bg-muted rounded w-28" />
+        </div>
+        <div className="h-12 w-12 bg-muted rounded-lg" />
+      </div>
+    </div>
+  );
 }
 
 function StatsCard({
@@ -155,37 +63,171 @@ function StatsCard({
   icon: Icon,
   bgColor,
   iconColor,
+  isLoading,
 }: StatsCardProps) {
+  const [displayValue, setDisplayValue] = useState(value);
   const isPositive = change >= 0;
+  const changeColor = isPositive
+    ? "text-green-600 dark:text-green-400"
+    : "text-red-600 dark:text-red-400";
+
+  // Smooth value transition
+  useEffect(() => {
+    if (!isLoading) {
+      setDisplayValue(value);
+    }
+  }, [value, isLoading]);
+
+  if (isLoading) {
+    return <StatsCardSkeleton />;
+  }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+    <article className="bg-card rounded-lg border border-border p-6 hover:shadow-lg transition-all duration-300 group">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+          <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+          <p className="text-3xl font-bold text-foreground mt-2 transition-all duration-500">
+            {displayValue}
+          </p>
 
           <div className="flex items-center mt-3 gap-1">
             {isPositive ? (
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <TrendingUp
+                className={`h-4 w-4 ${changeColor}`}
+                aria-hidden="true"
+              />
             ) : (
-              <TrendingDown className="h-4 w-4 text-red-600" />
+              <TrendingDown
+                className={`h-4 w-4 ${changeColor}`}
+                aria-hidden="true"
+              />
             )}
-            <span
-              className={`text-sm font-semibold ${
-                isPositive ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {isPositive ? "+" : ""}
-              {change}%
+            <span className={`text-sm font-semibold ${changeColor}`}>
+              {formatPercentage(change)}
             </span>
-            <span className="text-sm text-gray-500">vs last month</span>
+            <span className="text-sm text-muted-foreground">vs last month</span>
           </div>
         </div>
 
-        <div className={`p-3 rounded-lg ${bgColor}`}>
+        <div
+          className={`p-3 rounded-lg ${bgColor} transition-transform duration-300 group-hover:scale-110`}
+          aria-hidden="true"
+        >
           <Icon className={`h-6 w-6 ${iconColor}`} />
         </div>
+      </div>
+    </article>
+  );
+}
+
+function ErrorState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="col-span-full bg-destructive/10 border border-destructive/20 rounded-lg p-6">
+      <div className="flex items-center justify-center gap-3">
+        <AlertCircle className="h-5 w-5 text-destructive" />
+        <p className="text-destructive font-medium">
+          Failed to load statistics
+        </p>
+        <Button variant="outline" size="sm" onClick={onRetry} className="ml-2">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Retry
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Main component
+export function StatsCards() {
+  const { stats, isLoading, isError, mutate } = useStats();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  useEffect(() => {
+    if (stats) {
+      setLastUpdated(new Date());
+    }
+  }, [stats]);
+
+  const createStatsCards = (): StatsCardConfig[] => {
+    if (!stats) return [];
+
+    return [
+      {
+        title: "Total Posts",
+        value: formatNumber(stats.views.total), // Using views total as placeholder
+        change: stats.views.change,
+        icon: FileText,
+        color: "blue",
+        bgColor: "bg-blue-50 dark:bg-blue-950",
+        iconColor: "text-blue-600 dark:text-blue-400",
+      },
+      {
+        title: "Monthly Views",
+        value: formatNumber(stats.views.thisMonth),
+        change: stats.views.change,
+        icon: Eye,
+        color: "green",
+        bgColor: "bg-green-50 dark:bg-green-950",
+        iconColor: "text-green-600 dark:text-green-400",
+      },
+      {
+        title: "Total Visitors",
+        value: formatNumber(stats.visitors.thisMonth),
+        change: stats.visitors.change,
+        icon: MessageSquare,
+        color: "purple",
+        bgColor: "bg-purple-50 dark:bg-purple-950",
+        iconColor: "text-purple-600 dark:text-purple-400",
+      },
+      {
+        title: "AdSense Revenue",
+        value: formatCurrency(stats.earnings.thisMonth),
+        change: 0, // No change data for earnings yet
+        icon: DollarSign,
+        color: "yellow",
+        bgColor: "bg-yellow-50 dark:bg-yellow-950",
+        iconColor: "text-yellow-600 dark:text-yellow-400",
+      },
+    ];
+  };
+
+  if (isError) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <ErrorState onRetry={mutate} />
+      </div>
+    );
+  }
+
+  const cards = createStatsCards();
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="text-xs text-muted-foreground">
+          {!isLoading && stats && (
+            <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+          )}
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => mutate()}
+          disabled={isLoading}
+          className="gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {isLoading || !stats
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <StatsCardSkeleton key={i} />
+            ))
+          : cards.map((card) => <StatsCard key={card.title} {...card} />)}
       </div>
     </div>
   );

@@ -25,3 +25,51 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const { email } = await req.json();
+
+    if (!email) {
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    // Basic email validation
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: "Please provide a valid email address" },
+        { status: 400 }
+      );
+    }
+
+    await dbConnect();
+
+    // Check if subscriber already exists
+    const existingSubscriber = await Subscriber.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (existingSubscriber) {
+      // If already subscribed, we can just return success or a specific message
+      // Returning success is often better for privacy/UX
+      return NextResponse.json(
+        { message: "You are already subscribed!" },
+        { status: 200 }
+      );
+    }
+
+    await Subscriber.create({ email: email.toLowerCase() });
+
+    return NextResponse.json(
+      { message: "Successfully subscribed to the newsletter!" },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error subscribing:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}

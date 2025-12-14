@@ -1,0 +1,9 @@
+/* Webfont: Surgena-LightItalic */@font-face {
+    font-family: 'SurgenaLightIta';
+    src: url('Surgena-LightItalic.woff2') format('woff2'), /* Modern Browsers */
+         url('Surgena-LightItalic.otf') format('opentype'); /* Safari, Android, iOS */
+             font-style: italic;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+

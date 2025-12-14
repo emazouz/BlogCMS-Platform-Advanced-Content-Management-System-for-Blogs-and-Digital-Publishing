@@ -1,0 +1,9 @@
+/* Webfont: Surgena-MediumItalic */@font-face {
+    font-family: 'SurgenaMedIta';
+    src: url('Surgena-MediumItalic.woff2') format('woff2'), /* Modern Browsers */
+         url('Surgena-MediumItalic.otf') format('opentype'); /* Safari, Android, iOS */
+             font-style: italic;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+

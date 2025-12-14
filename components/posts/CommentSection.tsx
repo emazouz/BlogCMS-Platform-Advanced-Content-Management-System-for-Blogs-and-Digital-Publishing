@@ -14,6 +14,7 @@ import {
   CornerDownRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 interface Comment {
   _id: string;
@@ -80,7 +81,11 @@ function CommentItem({
   onReply: (authorName: string, parentId: string) => void;
   depth?: number;
 }) {
+  const [showDeepReplies, setShowDeepReplies] = useState(false);
   const isReply = depth > 0;
+  const MAX_DEPTH = 5; // Maximum nesting depth before flattening
+  const hasReplies = comment.replies && comment.replies.length > 0;
+  const shouldFlatten = depth >= MAX_DEPTH && hasReplies;
 
   return (
     <div className={cn("relative group", isReply && "mt-4")}>
@@ -165,20 +170,51 @@ function CommentItem({
         </div>
       </div>
 
-      {/* Render Replies Recursively */}
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="pl-6 md:pl-10 space-y-0">
-          {comment.replies.map((reply: any) => (
-            <CommentItem
-              key={reply._id}
-              comment={reply}
-              currentUser={currentUser}
-              postId={postId}
-              onReply={onReply}
-              depth={depth + 1}
-            />
-          ))}
-        </div>
+      {/* Render Replies */}
+      {hasReplies && (
+        <>
+          {shouldFlatten ? (
+            // Flatten deep replies with toggle button
+            <div className="mt-4">
+              <button
+                onClick={() => setShowDeepReplies(!showDeepReplies)}
+                className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+              >
+                <CornerDownRight size={14} />
+                {showDeepReplies ? "Hide" : "View"} {comment.replies.length}{" "}
+                {comment.replies.length === 1 ? "reply" : "replies"}
+              </button>
+              {showDeepReplies && (
+                <div className="mt-4 space-y-4 pl-0">
+                  {comment.replies.map((reply: any) => (
+                    <CommentItem
+                      key={reply._id}
+                      comment={reply}
+                      currentUser={currentUser}
+                      postId={postId}
+                      onReply={onReply}
+                      depth={MAX_DEPTH} // Keep at max depth to continue flattening
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            // Normal nested rendering
+            <div className="pl-6 md:pl-10 space-y-0">
+              {comment.replies.map((reply: any) => (
+                <CommentItem
+                  key={reply._id}
+                  comment={reply}
+                  currentUser={currentUser}
+                  postId={postId}
+                  onReply={onReply}
+                  depth={depth + 1}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -308,6 +344,33 @@ export default function CommentSection({
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Comments Tree */}
+        <div className="space-y-8">
+          {commentTree.length === 0 ? (
+            <div className="text-center py-20 px-6 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
+              <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-400">
+                <MessageSquare size={24} />
+              </div>
+              <h4 className="font-bold text-lg mb-1">No comments yet</h4>
+              <p className="text-muted-foreground">
+                Be the first to share your thoughts on this post.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {commentTree.map((comment) => (
+                <CommentItem
+                  key={comment._id}
+                  comment={comment}
+                  currentUser={currentUser}
+                  postId={postId}
+                  onReply={handleReply}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Comment Form */}
@@ -452,43 +515,16 @@ export default function CommentSection({
           </div>
 
           <div className="flex justify-end pt-2">
-            <button
+            <Button
               type="submit"
               disabled={isPending}
-              className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-8 py-2.5 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-8 py-2.5 font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isPending && <Loader2 className="animate-spin" size={16} />}
               {isPending ? "Publishing..." : "Post Review"}
-            </button>
+            </Button>
           </div>
         </form>
-
-        {/* Comments Tree */}
-        <div className="space-y-8">
-          {commentTree.length === 0 ? (
-            <div className="text-center py-20 px-6 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
-              <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-400">
-                <MessageSquare size={24} />
-              </div>
-              <h4 className="font-bold text-lg mb-1">No comments yet</h4>
-              <p className="text-muted-foreground">
-                Be the first to share your thoughts on this post.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-8">
-              {commentTree.map((comment) => (
-                <CommentItem
-                  key={comment._id}
-                  comment={comment}
-                  currentUser={currentUser}
-                  postId={postId}
-                  onReply={handleReply}
-                />
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

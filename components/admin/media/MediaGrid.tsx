@@ -4,16 +4,20 @@ import { Copy, ExternalLink, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
-interface MediaItem {
+export interface MediaItem {
   id: string;
   url: string;
   width: number;
   height: number;
   format: string;
   createdAt: string;
+  filename: string;
+  size: number;
+  mimetype: string;
+
 }
 
-interface MediaGridProps {
+export interface MediaGridProps {
   images: MediaItem[];
   isLoading: boolean;
 }

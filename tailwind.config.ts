@@ -61,6 +61,17 @@ const config: Config = {
           "5": "hsl(var(--chart-5))",
         },
       },
+      fontFamily: {
+        surgena: ["Surgena", "sans-serif"],
+        sans: ["Surgena", "system-ui", "-apple-system", "sans-serif"],
+      },
+      fontWeight: {
+        light: "300",
+        normal: "400",
+        medium: "500",
+        semibold: "600",
+        bold: "700",
+      },
     },
   },
   plugins: [tailwindcssAnimate, typography],

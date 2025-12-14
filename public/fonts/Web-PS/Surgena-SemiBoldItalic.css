@@ -1,0 +1,9 @@
+/* Webfont: Surgena-SemiBoldItalic */@font-face {
+    font-family: 'SurgenaSemBdIta';
+    src: url('Surgena-SemiBoldItalic.woff2') format('woff2'), /* Modern Browsers */
+         url('Surgena-SemiBoldItalic.otf') format('opentype'); /* Safari, Android, iOS */
+             font-style: italic;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+

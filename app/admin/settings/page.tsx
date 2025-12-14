@@ -1,7 +1,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Globe, Share2, Code, Layout } from "lucide-react";
+import {
+  Save,
+  Globe,
+  Share2,
+  Code,
+  Layout,
+  Settings as SettingsIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -51,6 +71,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
+      toast.error("Failed to load settings");
     } finally {
       setLoading(false);
     }
@@ -81,13 +102,13 @@ export default function SettingsPage() {
       });
 
       if (response.ok) {
-        alert("Settings saved successfully");
+        toast.success("Settings saved successfully!");
       } else {
-        alert("Failed to save settings");
+        toast.error("Failed to save settings");
       }
     } catch (error) {
       console.error("Error saving settings:", error);
-      alert("Error saving settings");
+      toast.error("Error saving settings");
     } finally {
       setSaving(false);
     }
@@ -95,147 +116,194 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="p-12 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="text-gray-600 mt-4">Loading settings...</p>
+      <div className="p-12 text-center" role="status" aria-live="polite">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+        <span className="sr-only">Loading settings...</span>
+        <p className="text-muted-foreground mt-4">Loading settings...</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-1">Configure your site details</p>
+          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+          <p className="text-muted-foreground mt-1">
+            Configure your site details and preferences
+          </p>
         </div>
-        <button
-          onClick={handleSubmit}
-          disabled={saving}
-          className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition disabled:opacity-50"
-        >
-          <Save className="h-4 w-4" />
+        <Button onClick={handleSubmit} disabled={saving}>
+          <Save className="h-4 w-4 mr-2" />
           {saving ? "Saving..." : "Save Changes"}
-        </button>
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* General Settings */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Layout className="h-5 w-5 text-primary-600" />
-            General Information
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Site Name
-              </label>
-              <input
-                type="text"
-                value={settings.siteName}
-                onChange={(e) =>
-                  handleChange("root", "siteName", e.target.value)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Site Description
-              </label>
-              <textarea
-                value={settings.siteDescription}
-                onChange={(e) =>
-                  handleChange("root", "siteDescription", e.target.value)
-                }
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Site URL
-              </label>
-              <input
-                type="url"
-                value={settings.siteUrl}
-                onChange={(e) =>
-                  handleChange("root", "siteUrl", e.target.value)
-                }
-                placeholder="https://example.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-          </div>
-        </div>
+      {/* Tabs */}
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto">
+          <TabsTrigger value="general">
+            <Layout className="h-4 w-4 mr-2" />
+            General
+          </TabsTrigger>
+          <TabsTrigger value="social">
+            <Share2 className="h-4 w-4 mr-2" />
+            Social
+          </TabsTrigger>
+          <TabsTrigger value="scripts">
+            <Code className="h-4 w-4 mr-2" />
+            Scripts
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Social Media */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Share2 className="h-5 w-5 text-primary-600" />
-            Social Media
-          </h2>
-          <div className="space-y-4">
-            {Object.keys(settings.socials).map((platform) => (
-              <div key={platform}>
-                <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
-                  {platform}
-                </label>
-                <input
-                  type="url"
-                  value={
-                    settings.socials[platform as keyof typeof settings.socials]
-                  }
+        {/* General Settings Tab */}
+        <TabsContent value="general" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                General Information
+              </CardTitle>
+              <CardDescription>
+                Basic information about your website
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="siteName">Site Name</Label>
+                <Input
+                  id="siteName"
+                  type="text"
+                  value={settings.siteName}
                   onChange={(e) =>
-                    handleChange("socials", platform, e.target.value)
+                    handleChange("root", "siteName", e.target.value)
                   }
-                  placeholder={`https://${platform}.com/username`}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="My Awesome Blog"
                 />
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Custom Scripts */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 lg:col-span-2">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Code className="h-5 w-5 text-primary-600" />
-            Custom Scripts
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Header Scripts (GTM, Analytics)
-              </label>
-              <textarea
-                value={settings.scripts.header}
-                onChange={(e) =>
-                  handleChange("scripts", "header", e.target.value)
-                }
-                rows={6}
-                placeholder="<script>...</script>"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Footer Scripts
-              </label>
-              <textarea
-                value={settings.scripts.footer}
-                onChange={(e) =>
-                  handleChange("scripts", "footer", e.target.value)
-                }
-                rows={6}
-                placeholder="<script>...</script>"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+              <div className="space-y-2">
+                <Label htmlFor="siteDescription">Site Description</Label>
+                <Textarea
+                  id="siteDescription"
+                  value={settings.siteDescription}
+                  onChange={(e) =>
+                    handleChange("root", "siteDescription", e.target.value)
+                  }
+                  rows={3}
+                  placeholder="A brief description of your site..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="siteUrl">Site URL</Label>
+                <Input
+                  id="siteUrl"
+                  type="url"
+                  value={settings.siteUrl}
+                  onChange={(e) =>
+                    handleChange("root", "siteUrl", e.target.value)
+                  }
+                  placeholder="https://example.com"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Social Media Tab */}
+        <TabsContent value="social" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Share2 className="h-5 w-5 text-primary" />
+                Social Media Links
+              </CardTitle>
+              <CardDescription>
+                Connect your social media profiles
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {Object.keys(settings.socials).map((platform) => (
+                <div key={platform} className="space-y-2">
+                  <Label htmlFor={platform} className="capitalize">
+                    {platform}
+                  </Label>
+                  <Input
+                    id={platform}
+                    type="url"
+                    value={
+                      settings.socials[
+                        platform as keyof typeof settings.socials
+                      ]
+                    }
+                    onChange={(e) =>
+                      handleChange("socials", platform, e.target.value)
+                    }
+                    placeholder={`https://${platform}.com/username`}
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Custom Scripts Tab */}
+        <TabsContent value="scripts" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Code className="h-5 w-5 text-primary" />
+                Custom Scripts
+              </CardTitle>
+              <CardDescription>
+                Add custom scripts for analytics, tracking, or other
+                integrations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="headerScripts">
+                  Header Scripts (GTM, Analytics)
+                </Label>
+                <Textarea
+                  id="headerScripts"
+                  value={settings.scripts.header}
+                  onChange={(e) =>
+                    handleChange("scripts", "header", e.target.value)
+                  }
+                  rows={8}
+                  placeholder="<script>...</script>"
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Scripts added here will be injected into the &lt;head&gt;
+                  section
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="footerScripts">Footer Scripts</Label>
+                <Textarea
+                  id="footerScripts"
+                  value={settings.scripts.footer}
+                  onChange={(e) =>
+                    handleChange("scripts", "footer", e.target.value)
+                  }
+                  rows={8}
+                  placeholder="<script>...</script>"
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Scripts added here will be injected before the closing
+                  &lt;/body&gt; tag
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

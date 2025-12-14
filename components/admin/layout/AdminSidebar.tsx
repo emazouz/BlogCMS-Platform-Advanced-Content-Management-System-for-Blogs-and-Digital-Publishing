@@ -91,7 +91,7 @@ export function SidebarContent({ user, className }: AdminSidebarProps) {
   };
 
   return (
-    <div className={cn("flex flex-col h-full bg-slate-900", className)}>
+    <div className={cn("flex flex-col h-full bg-card", className)}>
       {/* Logo Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

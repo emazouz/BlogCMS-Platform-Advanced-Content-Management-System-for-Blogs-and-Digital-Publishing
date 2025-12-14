@@ -12,6 +12,7 @@ import {
   Mail,
   ArrowRight,
 } from "lucide-react";
+import { Newsletter } from "../shared/Newsletter";
 
 export default function Footer() {
   return (
@@ -83,34 +84,7 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div className="lg:col-span-4 space-y-6">
-            <h4 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">
-              Stay Updated
-            </h4>
-            <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed">
-              Subscribe to our newsletter to get the latest articles and updates
-              delivered to your inbox.
-            </p>
-            <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
-              <div className="relative flex-1">
-                <Mail
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
-                  size={16}
-                />
-                <Input
-                  placeholder="Enter your email"
-                  className="pl-10 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus-visible:ring-blue-500"
-                  type="email"
-                />
-              </div>
-              <Button
-                type="submit"
-                size="icon"
-                className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <ArrowRight size={18} />
-                <span className="sr-only">Subscribe</span>
-              </Button>
-            </form>
+            <Newsletter variant="footer" />
           </div>
         </div>
 

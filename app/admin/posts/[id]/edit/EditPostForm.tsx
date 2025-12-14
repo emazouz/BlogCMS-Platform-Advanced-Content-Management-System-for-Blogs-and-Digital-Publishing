@@ -1,25 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm, Controller, ControllerRenderProps } from "react-hook-form";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import { updatePost } from "@/lib/actions/post.actions";
 import TiptapEditor from "@/components/admin/TiptapEditor";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Image as ImageIcon } from "lucide-react";
-import AdminTopNavBar from "@/components/admin/AdminTopNavBar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  Image as ImageIcon,
+  ArrowLeft,
+  Save,
+  FolderTree,
+  Tag,
+  Upload,
+  X,
+  Check,
+  Clock,
+  AlertCircle,
+  Sparkles,
+  ExternalLink,
+  Trash2,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
+// Types
 interface Category {
   _id: string;
   name: string;
+  slug: string;
 }
 
 interface Tag {
   _id: string;
   name: string;
+  slug: string;
 }
 
 interface FormData {
@@ -38,17 +57,155 @@ interface FormData {
   tags: string[];
 }
 
+type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
+
+// Constants
+const AUTO_SAVE_DELAY = 3000; // 3 seconds
+
+// Utility functions
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getAutoSaveStatusConfig(status: AutoSaveStatus) {
+  const configs = {
+    idle: {
+      icon: Clock,
+      text: "Auto-save ready",
+      color: "text-muted-foreground",
+    },
+    saving: {
+      icon: Clock,
+      text: "Saving draft...",
+      color: "text-blue-600 dark:text-blue-400",
+    },
+    saved: {
+      icon: Check,
+      text: "Draft saved",
+      color: "text-green-600 dark:text-green-400",
+    },
+    error: {
+      icon: AlertCircle,
+      text: "Save failed",
+      color: "text-destructive",
+    },
+  };
+  return configs[status];
+}
+
+// Sub-components
+function AutoSaveIndicator({ status }: { status: AutoSaveStatus }) {
+  const config = getAutoSaveStatusConfig(status);
+  const Icon = config.icon;
+
+  return (
+    <div className={`flex items-center gap-2 text-sm ${config.color}`}>
+      <Icon className="h-4 w-4" aria-hidden="true" />
+      <span>{config.text}</span>
+    </div>
+  );
+}
+
+function CharacterCount({
+  text,
+  max,
+  label,
+}: {
+  text: string;
+  max: number;
+  label: string;
+}) {
+  const count = text?.length || 0;
+  const percentage = (count / max) * 100;
+  const isNearLimit = percentage > 80;
+  const isOverLimit = percentage > 100;
+
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span
+        className={`font-medium ${
+          isOverLimit
+            ? "text-destructive"
+            : isNearLimit
+            ? "text-yellow-600 dark:text-yellow-400"
+            : "text-muted-foreground"
+        }`}
+      >
+        {count} / {max}
+      </span>
+    </div>
+  );
+}
+
+function SEOScore({
+  title,
+  description,
+  keyword,
+}: {
+  title: string;
+  description: string;
+  keyword: string;
+}) {
+  const calculateScore = () => {
+    let score = 0;
+    if (title && title.length >= 30 && title.length <= 60) score += 33;
+    if (description && description.length >= 120 && description.length <= 160)
+      score += 33;
+    if (keyword && title.toLowerCase().includes(keyword.toLowerCase()))
+      score += 34;
+    return score;
+  };
+
+  const score = calculateScore();
+  const getScoreColor = () => {
+    if (score >= 70) return "text-green-600 dark:text-green-400";
+    if (score >= 40) return "text-yellow-600 dark:text-yellow-400";
+    return "text-destructive";
+  };
+
+  return (
+    <div className="p-3 bg-muted/50 rounded-lg">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-foreground">SEO Score</span>
+        <span className={`text-sm font-bold ${getScoreColor()}`}>{score}%</span>
+      </div>
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div
+          className={`h-full transition-all duration-300 ${
+            score >= 70
+              ? "bg-green-600"
+              : score >= 40
+              ? "bg-yellow-600"
+              : "bg-destructive"
+          }`}
+          style={{ width: `${score}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Main component
 export default function EditPostForm({ post }: { post: any }) {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>(
+    post.featuredImage || ""
+  );
+  const [autoSaveStatus, setAutoSaveStatus] = useState<AutoSaveStatus>("idle");
+  const [showSEOPanel, setShowSEOPanel] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  // Helper to format date for datetime-local input
-  const formatDateForInput = (dateString?: string) => {
-    if (!dateString) return "";
-    return new Date(dateString).toISOString().slice(0, 16);
-  };
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const storageKey = `edit_post_${post._id}`;
 
   const {
     register,
@@ -56,7 +213,7 @@ export default function EditPostForm({ post }: { post: any }) {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormData>({
     defaultValues: {
       title: post.title || "",
@@ -68,16 +225,25 @@ export default function EditPostForm({ post }: { post: any }) {
       metaTitle: post.metaTitle || "",
       metaDescription: post.metaDescription || "",
       focusKeyword: post.focusKeyword || "",
-      category: post.category?._id || post.category || "", // Handle if populated or ID
+      category: post.category?._id || "",
       tags:
         post.tags?.map((t: any) => (typeof t === "string" ? t : t._id)) || [],
-      publishedAt: formatDateForInput(post.publishedAt),
+      publishedAt: post.publishedAt
+        ? new Date(post.publishedAt).toISOString().slice(0, 16)
+        : "",
     },
   });
 
   const title = watch("title");
+  const status = watch("status");
+  const featuredImage = watch("featuredImage");
+  const metaTitle = watch("metaTitle");
+  const metaDescription = watch("metaDescription");
+  const focusKeyword = watch("focusKeyword");
+  const content = watch("content");
+  const excerpt = watch("excerpt");
 
-  // Fetch Categories and Tags
+  // Fetch categories and tags
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -85,23 +251,97 @@ export default function EditPostForm({ post }: { post: any }) {
           fetch("/api/categories"),
           fetch("/api/tags"),
         ]);
+
+        if (!catRes.ok || !tagRes.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
         const catData = await catRes.json();
         const tagData = await tagRes.json();
-        setCategories(catData.categories || catData); // Handle potential response wrapper
-        setAvailableTags(tagData.tags || tagData);
+
+        setCategories(catData.categories || catData || []);
+        setAvailableTags(tagData.tags || tagData || []);
       } catch (error) {
+        console.error("Error fetching data:", error);
         toast.error("Failed to load categories/tags");
       }
     };
     fetchData();
   }, []);
 
+  // Handle image preview
+  useEffect(() => {
+    if (featuredImage instanceof FileList && featuredImage.length > 0) {
+      const file = featuredImage[0];
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+      return () => URL.revokeObjectURL(url);
+    } else if (typeof featuredImage === "string" && featuredImage) {
+      setImagePreview(featuredImage);
+    } else {
+      setImagePreview("");
+    }
+  }, [featuredImage]);
+
+  // Auto-save functionality
+  const autoSave = useCallback(async () => {
+    if (!isDirty) return;
+
+    setAutoSaveStatus("saving");
+
+    try {
+      const formData = {
+        title: watch("title"),
+        slug: watch("slug"),
+        excerpt: watch("excerpt"),
+        content: watch("content"),
+        metaTitle: watch("metaTitle"),
+        metaDescription: watch("metaDescription"),
+        focusKeyword: watch("focusKeyword"),
+        category: watch("category"),
+        tags: watch("tags"),
+        status: watch("status"),
+      };
+
+      localStorage.setItem(storageKey, JSON.stringify(formData));
+      setLastSaved(new Date());
+      setAutoSaveStatus("saved");
+
+      setTimeout(() => {
+        setAutoSaveStatus("idle");
+      }, 2000);
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+      setAutoSaveStatus("error");
+    }
+  }, [isDirty, watch, storageKey]);
+
+  // Trigger auto-save on form changes
+  useEffect(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    if (isDirty) {
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        autoSave();
+      }, AUTO_SAVE_DELAY);
+    }
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [title, content, excerpt, autoSave, isDirty]);
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
+
     try {
       let imageUrl = data.featuredImage;
 
-      // Handle file upload if it's a FileList (new file selected)
+      // Handle file upload
       if (
         data.featuredImage instanceof FileList &&
         data.featuredImage.length > 0
@@ -126,7 +366,6 @@ export default function EditPostForm({ post }: { post: any }) {
         if (key === "tags") {
           formData.append(key, JSON.stringify(value));
         } else if (key === "featuredImage") {
-          // Ensure we send the URL string
           if (typeof imageUrl === "string") {
             formData.append(key, imageUrl);
           }
@@ -136,75 +375,140 @@ export default function EditPostForm({ post }: { post: any }) {
       });
 
       await updatePost(post._id, formData);
+
+      // Clear auto-saved draft
+      localStorage.removeItem(storageKey);
+
       toast.success("Post updated successfully");
       router.push("/admin/posts");
     } catch (error) {
-      console.error(error);
+      console.error("Error updating post:", error);
       toast.error("Failed to update post");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto p-6">
-      <AdminTopNavBar
-        title="Edit Post"
-        description="Update your content"
-        onBack={() => router.back()}
-        onSave={handleSubmit(onSubmit)}
-        onSaveDraft={() => setValue("status", "draft")}
-        isSaving={isSubmitting}
-        saveLabel="Update"
-      />
+  const handleSaveUpdate = async () => {
+    await handleSubmit(onSubmit)();
+  };
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-8"
-      >
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/posts">
+            <Button variant="ghost" size="icon" aria-label="Back to posts">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Edit Post</h1>
+            <p className="text-muted-foreground mt-1">
+              Update your content
+              {lastSaved && ` • Last saved ${lastSaved.toLocaleTimeString()}`}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <AutoSaveIndicator status={autoSaveStatus} />
+          <Button variant="outline" asChild>
+            <Link href={`/posts/${post.slug}`} target="_blank">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              View
+            </Link>
+          </Button>
+          <Button onClick={handleSaveUpdate} disabled={isSubmitting} size="lg">
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Update
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <form className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="p-6 space-y-6">
+          {/* Basic Info Card */}
+          <div className="bg-card rounded-lg border border-border p-6 space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Title</label>
+              <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                Title *
+                <Badge variant="outline" className="text-xs">
+                  {title?.length || 0} characters
+                </Badge>
+              </label>
               <Input
                 {...register("title", { required: "Title is required" })}
-                placeholder="Enter post title"
+                placeholder="Enter an engaging post title"
                 className="text-lg font-medium"
               />
               {errors.title && (
-                <p className="text-sm text-red-500">{errors.title.message}</p>
+                <p className="text-sm text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.title.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-500">Slug</label>
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                Slug
+                <Badge variant="secondary" className="text-xs">
+                  Auto-generated
+                </Badge>
+              </label>
               <Input
                 {...register("slug", { required: "Slug is required" })}
-                className="bg-gray-50 font-mono text-sm"
+                className="bg-muted font-mono text-sm"
+                placeholder="post-url-slug"
               />
+              {errors.slug && (
+                <p className="text-sm text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.slug.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Excerpt</label>
+              <label className="text-sm font-medium text-foreground">
+                Excerpt
+              </label>
               <textarea
                 {...register("excerpt")}
-                className="w-full min-h-[100px] p-3 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                placeholder="Brief summary of your post..."
+                className="w-full min-h-[100px] p-3 rounded-lg border border-input bg-background text-foreground text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                placeholder="Brief summary of your post (recommended for SEO)"
+              />
+              <CharacterCount
+                text={excerpt || ""}
+                max={160}
+                label="Optimal for search previews"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Content</label>
-              <div className="prose-editor">
+              <label className="text-sm font-medium text-foreground flex items-center justify-between">
+                <span>Content *</span>
+                <Badge variant="outline" className="text-xs">
+                  {content?.length || 0} characters
+                </Badge>
+              </label>
+              <div className="prose-editor border border-border rounded-lg overflow-hidden">
                 <Controller
                   name="content"
                   control={control}
-                  render={({
-                    field,
-                  }: {
-                    field: ControllerRenderProps<FormData, "content">;
-                  }) => (
+                  rules={{ required: "Content is required" }}
+                  render={({ field }) => (
                     <TiptapEditor
                       content={field.value}
                       onChange={field.onChange}
@@ -212,54 +516,114 @@ export default function EditPostForm({ post }: { post: any }) {
                   )}
                 />
               </div>
+              {errors.content && (
+                <p className="text-sm text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.content.message}
+                </p>
+              )}
             </div>
-          </Card>
+          </div>
 
           {/* SEO Section */}
-          <Card className="p-6 space-y-6">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <div className="p-1.5 bg-blue-50 text-blue-600 rounded">
-                <SearchIcon className="h-4 w-4" />
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowSEOPanel(!showSEOPanel)}
+              className="w-full p-6 flex items-center justify-between hover:bg-accent/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  SEO Settings
+                </h2>
               </div>
-              SEO Settings
-            </h2>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Meta Title</label>
-                <Input
-                  {...register("metaTitle")}
-                  placeholder="SEO optimized title"
+              <Badge variant="secondary">
+                {showSEOPanel ? "Hide" : "Show"}
+              </Badge>
+            </button>
+
+            {showSEOPanel && (
+              <div className="px-6 pb-6 space-y-4 border-t border-border pt-6">
+                <SEOScore
+                  title={metaTitle || title}
+                  description={metaDescription}
+                  keyword={focusKeyword}
                 />
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Meta Title
+                  </label>
+                  <Input
+                    {...register("metaTitle")}
+                    placeholder="SEO optimized title (leave empty to use post title)"
+                  />
+                  <CharacterCount
+                    text={metaTitle || title || ""}
+                    max={60}
+                    label="Optimal: 50-60 characters"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Meta Description
+                  </label>
+                  <textarea
+                    {...register("metaDescription")}
+                    className="w-full min-h-[80px] p-3 rounded-lg border border-input bg-background text-foreground text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                    placeholder="Description for search engines (120-160 characters)"
+                  />
+                  <CharacterCount
+                    text={metaDescription || ""}
+                    max={160}
+                    label="Optimal: 120-160 characters"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Focus Keyword
+                  </label>
+                  <Input
+                    {...register("focusKeyword")}
+                    placeholder="Main keyword for this post"
+                  />
+                  {focusKeyword &&
+                    title &&
+                    !title
+                      .toLowerCase()
+                      .includes(focusKeyword.toLowerCase()) && (
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        Keyword not found in title
+                      </p>
+                    )}
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Meta Description</label>
-                <textarea
-                  {...register("metaDescription")}
-                  className="w-full min-h-[80px] p-3 rounded-md border border-input bg-background text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  placeholder="Description for search engines..."
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Focus Keyword</label>
-                <Input
-                  {...register("focusKeyword")}
-                  placeholder="Main keyword"
-                />
-              </div>
-            </div>
-          </Card>
+            )}
+          </div>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <Card className="p-6 space-y-6">
-            <h2 className="font-semibold text-gray-900">Publishing</h2>
+          {/* Publishing Card */}
+          <div className="bg-card rounded-lg border border-border p-6 space-y-6">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <h2 className="font-semibold text-foreground">Publishing</h2>
+            </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
+              <label className="text-sm font-medium text-foreground">
+                Status
+              </label>
               <select
                 {...register("status")}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full h-10 px-3 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition"
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
@@ -269,25 +633,54 @@ export default function EditPostForm({ post }: { post: any }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Publish Date</label>
-              <div className="relative">
+              <label className="text-sm font-medium text-foreground">
+                Publish Date
+              </label>
+              <Input
+                type="datetime-local"
+                {...register("publishedAt")}
+                className="w-full"
+              />
+            </div>
+
+            {status === "scheduled" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Schedule For
+                </label>
                 <Input
                   type="datetime-local"
-                  {...register("publishedAt")}
+                  {...register("scheduledFor", {
+                    required:
+                      status === "scheduled"
+                        ? "Schedule date is required"
+                        : false,
+                  })}
                   className="w-full"
                 />
+                {errors.scheduledFor && (
+                  <p className="text-sm text-destructive">
+                    {errors.scheduledFor.message}
+                  </p>
+                )}
               </div>
-            </div>
-          </Card>
+            )}
+          </div>
 
-          <Card className="p-6 space-y-6">
-            <h2 className="font-semibold text-gray-900">Organization</h2>
+          {/* Organization Card */}
+          <div className="bg-card rounded-lg border border-border p-6 space-y-6">
+            <div className="flex items-center gap-2">
+              <FolderTree className="h-5 w-5 text-muted-foreground" />
+              <h2 className="font-semibold text-foreground">Organization</h2>
+            </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Category</label>
+              <label className="text-sm font-medium text-foreground">
+                Category
+              </label>
               <select
                 {...register("category")}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full h-10 px-3 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition"
               >
                 <option value="">Select Category</option>
                 {categories.map((cat) => (
@@ -299,82 +692,86 @@ export default function EditPostForm({ post }: { post: any }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tags</label>
-              <div className="p-3 border rounded-md bg-white max-h-40 overflow-y-auto space-y-2">
-                {availableTags.map((tag) => (
-                  <label key={tag._id} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      value={tag._id}
-                      {...register("tags")}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    <span className="text-sm text-gray-700">{tag.name}</span>
-                  </label>
-                ))}
-                {availableTags.length === 0 && (
-                  <p className="text-xs text-gray-500">No tags found</p>
+              <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                <Tag className="h-4 w-4" />
+                Tags
+              </label>
+              <div className="p-3 border border-border rounded-lg bg-background max-h-48 overflow-y-auto space-y-2">
+                {availableTags.length > 0 ? (
+                  availableTags.map((tag) => (
+                    <label
+                      key={tag._id}
+                      className="flex items-center gap-2 hover:bg-accent/50 p-2 rounded transition-colors cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        value={tag._id}
+                        {...register("tags")}
+                        className="rounded border-input text-primary focus:ring-ring"
+                      />
+                      <span className="text-sm text-foreground">
+                        {tag.name}
+                      </span>
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-4">
+                    No tags available
+                  </p>
                 )}
               </div>
             </div>
-          </Card>
+          </div>
 
-          <Card className="p-6 space-y-4">
-            <h2 className="font-semibold text-gray-900">Featured Image</h2>
-            <div className="space-y-2">
+          {/* Featured Image Card */}
+          <div className="bg-card rounded-lg border border-border p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5 text-muted-foreground" />
+              <h2 className="font-semibold text-foreground">Featured Image</h2>
+            </div>
+
+            <div className="space-y-3">
+              <div className="relative h-48 border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted/30 overflow-hidden group">
+                {imagePreview ? (
+                  <>
+                    <Image
+                      src={imagePreview}
+                      alt="Preview"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 300px"
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setValue("featuredImage", "");
+                        setImagePreview("");
+                      }}
+                      className="absolute top-2 right-2 p-2 bg-destructive text-destructive-foreground rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="text-center p-4">
+                    <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Upload an image
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <Input
                 type="file"
                 accept="image/*"
                 {...register("featuredImage")}
+                className="cursor-pointer"
               />
-              <div className="h-40 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center bg-gray-50 overflow-hidden">
-                {watch("featuredImage") &&
-                ((typeof watch("featuredImage") === "string" &&
-                  watch("featuredImage")) ||
-                  (watch("featuredImage") instanceof FileList &&
-                    (watch("featuredImage") as any).length > 0)) ? (
-                  <img
-                    src={
-                      watch("featuredImage") instanceof FileList
-                        ? URL.createObjectURL(
-                            (watch("featuredImage") as any)[0]
-                          )
-                        : (watch("featuredImage") as string)
-                    }
-                    alt="Preview"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="text-center text-gray-400">
-                    <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-                    <span className="text-xs">Select an image to preview</span>
-                  </div>
-                )}
-              </div>
             </div>
-          </Card>
+          </div>
         </div>
       </form>
     </div>
-  );
-}
-
-function SearchIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
   );
 }

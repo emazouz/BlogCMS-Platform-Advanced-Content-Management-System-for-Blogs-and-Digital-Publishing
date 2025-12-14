@@ -36,6 +36,7 @@ async function getPost(slug: string) {
   const post = (await Post.findOne({ slug, status: "published" })
     .populate("author", "name username image bio") // Fetch bio if available
     .populate("category", "name slug")
+    .populate("tags", "name") // Populate tags to get tag names
     .lean()) as any;
 
   if (!post) return null;
@@ -173,7 +174,7 @@ const PostPage = async ({ params }: Props) => {
                 {post.author?.image ? (
                   <Image
                     src={post.author.image}
-                    alt={post.author.username}
+                    alt={post.author.username || "user"}
                     fill
                     className="object-cover"
                   />
@@ -244,12 +245,12 @@ const PostPage = async ({ params }: Props) => {
                   Tags
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag: string) => (
+                  {post.tags.map((tag: any) => (
                     <span
-                      key={tag}
+                      key={tag._id || tag}
                       className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-full text-sm"
                     >
-                      #{tag}
+                      #{tag.name || tag}
                     </span>
                   ))}
                 </div>
@@ -268,7 +269,7 @@ const PostPage = async ({ params }: Props) => {
               <CommentSection
                 postId={post._id}
                 comments={comments}
-                currentUser={session?.user as CurrentUser || null}
+                currentUser={(session?.user as CurrentUser) || null}
                 rating={post.rating || 0}
                 ratingCount={post.ratingCount || 0}
               />

@@ -19,7 +19,7 @@ export default async function EditPostPage({
 
   // Pass serialization-friendly object
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="mx-auto max-w-6xl">
       <h1 className="text-3xl font-bold mb-6">Edit Post</h1>
       <EditPostForm post={JSON.parse(JSON.stringify(post))} />
     </div>
