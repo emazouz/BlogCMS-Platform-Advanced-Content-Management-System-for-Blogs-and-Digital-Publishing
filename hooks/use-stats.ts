@@ -17,6 +17,12 @@ interface Stats {
     lastMonth: number;
     change: number;
   };
+  posts: {
+    total: number;
+    thisMonth: number;
+    lastMonth: number;
+    change: number;
+  };
   earnings: {
     total: number;
     thisMonth: number;

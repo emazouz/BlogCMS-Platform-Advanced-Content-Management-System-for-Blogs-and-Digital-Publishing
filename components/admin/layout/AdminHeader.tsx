@@ -1,11 +1,11 @@
 "use client";
 
-import { 
-  Bell, 
-  Search, 
-  ExternalLink, 
-  Menu, 
-  Moon, 
+import {
+  Bell,
+  Search,
+  ExternalLink,
+  Menu,
+  Moon,
   Sun,
   Command,
   FileText,
@@ -14,7 +14,7 @@ import {
   Users,
   BarChart3,
   MessageSquare,
-  X
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -41,6 +41,10 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { SidebarContent } from "@/components/admin/layout/AdminSidebar";
+import type {
+  AdminStats,
+  AdminNotification,
+} from "@/lib/actions/admin-stats.actions";
 
 // Types
 interface AdminHeaderProps {
@@ -50,15 +54,8 @@ interface AdminHeaderProps {
     image?: string | null;
     role?: string;
   };
-}
-
-interface Notification {
-  id: string;
-  title: string;
-  time: string;
-  type: "comment" | "subscriber" | "report" | "post";
-  read: boolean;
-  link?: string;
+  stats: AdminStats;
+  notifications: AdminNotification[];
 }
 
 interface QuickAction {
@@ -69,34 +66,6 @@ interface QuickAction {
   href: string;
   keywords: string[];
 }
-
-// Constants
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    title: 'New comment on "Getting Started"',
-    time: "2 minutes ago",
-    type: "comment",
-    read: false,
-    link: "/admin/comments",
-  },
-  {
-    id: "2",
-    title: "New subscriber joined",
-    time: "1 hour ago",
-    type: "subscriber",
-    read: false,
-    link: "/admin/subscribers",
-  },
-  {
-    id: "3",
-    title: "Daily analytics report ready",
-    time: "3 hours ago",
-    type: "report",
-    read: true,
-    link: "/admin/analytics",
-  },
-];
 
 const QUICK_ACTIONS: QuickAction[] = [
   {
@@ -168,7 +137,7 @@ function getInitials(name?: string | null): string {
     .slice(0, 2);
 }
 
-function getNotificationIcon(type: Notification["type"]) {
+function getNotificationIcon(type: AdminNotification["type"]) {
   const icons = {
     comment: MessageSquare,
     subscriber: Users,
@@ -179,11 +148,11 @@ function getNotificationIcon(type: Notification["type"]) {
 }
 
 // Sub-components
-function NotificationItem({ 
-  notification, 
-  onClick 
-}: { 
-  notification: Notification;
+function NotificationItem({
+  notification,
+  onClick,
+}: {
+  notification: AdminNotification;
   onClick: () => void;
 }) {
   const Icon = getNotificationIcon(notification.type);
@@ -194,22 +163,30 @@ function NotificationItem({
       className={`
         w-full text-left p-4 hover:bg-accent/50 transition-colors
         border-b border-border last:border-0
-        ${!notification.read ? 'bg-accent/20' : ''}
+        ${!notification.read ? "bg-accent/20" : ""}
       `}
     >
       <div className="flex items-start gap-3">
-        <div className={`
+        <div
+          className={`
           p-2 rounded-lg mt-0.5
-          ${notification.read ? 'bg-muted' : 'bg-primary/10'}
-        `}>
-          <Icon className={`h-3.5 w-3.5 ${
-            notification.read ? 'text-muted-foreground' : 'text-primary'
-          }`} />
+          ${notification.read ? "bg-muted" : "bg-primary/10"}
+        `}
+        >
+          <Icon
+            className={`h-3.5 w-3.5 ${
+              notification.read ? "text-muted-foreground" : "text-primary"
+            }`}
+          />
         </div>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm ${
-            notification.read ? 'text-muted-foreground' : 'text-foreground font-medium'
-          }`}>
+          <p
+            className={`text-sm ${
+              notification.read
+                ? "text-muted-foreground"
+                : "text-foreground font-medium"
+            }`}
+          >
             {notification.title}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
@@ -217,18 +194,21 @@ function NotificationItem({
           </p>
         </div>
         {!notification.read && (
-          <div className="w-2 h-2 rounded-full bg-primary mt-2" aria-label="Unread" />
+          <div
+            className="w-2 h-2 rounded-full bg-primary mt-2"
+            aria-label="Unread"
+          />
         )}
       </div>
     </button>
   );
 }
 
-function CommandPalette({ 
-  isOpen, 
-  onClose 
-}: { 
-  isOpen: boolean; 
+function CommandPalette({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
   onClose: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -242,11 +222,11 @@ function CommandPalette({
   }, [isOpen]);
 
   const filteredActions = searchQuery
-    ? QUICK_ACTIONS.filter((action) =>
-        action.keywords.some((keyword) =>
-          keyword.toLowerCase().includes(searchQuery.toLowerCase())
-        ) ||
-        action.title.toLowerCase().includes(searchQuery.toLowerCase())
+    ? QUICK_ACTIONS.filter(
+        (action) =>
+          action.keywords.some((keyword) =>
+            keyword.toLowerCase().includes(searchQuery.toLowerCase())
+          ) || action.title.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : QUICK_ACTIONS;
 
@@ -258,11 +238,11 @@ function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div 
+      <div
         className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -343,10 +323,15 @@ function CommandPalette({
 }
 
 // Main component
-export function AdminHeader({ user }: AdminHeaderProps) {
+export function AdminHeader({
+  user,
+  stats,
+  notifications: initialNotifications,
+}: AdminHeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] =
+    useState<AdminNotification[]>(initialNotifications);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { data: session } = useSession();
@@ -371,7 +356,8 @@ export function AdminHeader({ user }: AdminHeaderProps) {
 
     if (showNotifications) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showNotifications]);
 
@@ -403,12 +389,10 @@ export function AdminHeader({ user }: AdminHeaderProps) {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const handleNotificationClick = (notification: Notification) => {
+  const handleNotificationClick = (notification: AdminNotification) => {
     // Mark as read
     setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === notification.id ? { ...n, read: true } : n
-      )
+      prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
     );
 
     // Navigate if link exists
@@ -443,7 +427,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
             className="p-0 border-r-slate-800 bg-slate-900 w-64 text-white"
           >
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-            <SidebarContent user={user} />
+            <SidebarContent user={user} stats={stats} />
           </SheetContent>
         </Sheet>
 
@@ -481,7 +465,9 @@ export function AdminHeader({ user }: AdminHeaderProps) {
               size="icon"
               onClick={toggleTheme}
               className="text-muted-foreground hover:text-foreground"
-              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              aria-label={`Switch to ${
+                theme === "dark" ? "light" : "dark"
+              } mode`}
             >
               {theme === "dark" ? (
                 <Sun className="h-5 w-5" />
@@ -516,7 +502,9 @@ export function AdminHeader({ user }: AdminHeaderProps) {
             {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 bg-popover rounded-lg shadow-xl border border-border overflow-hidden z-50">
                 <div className="flex items-center justify-between p-4 border-b border-border">
-                  <h3 className="font-semibold text-foreground">Notifications</h3>
+                  <h3 className="font-semibold text-foreground">
+                    Notifications
+                  </h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllAsRead}

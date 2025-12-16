@@ -70,40 +70,48 @@ export default function Hero({ posts }: { posts: Post[] }) {
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-auto lg:h-[500px]">
                     {/* Left Side (2x2 Grid) - Spans 2 columns on large screens */}
                     <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
-                      {gridPosts.map((post) => (
-                        <Link
-                          key={post._id}
-                          href={`/posts/${post.slug}`}
-                          className="group/item relative rounded-xl overflow-hidden h-60 lg:h-auto border border-zinc-200 dark:border-zinc-800 shadow-sm"
-                        >
-                          <div className="absolute inset-0">
-                            <Image
-                              src={post.featuredImage}
-                              alt={post.title}
-                              fill
-                              className="object-cover transition-transform duration-500 group-hover/item:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                          </div>
-                          <div className="absolute inset-0 p-4 flex flex-col justify-between items-start">
-                            <span
-                              className={cn(
-                                "px-3 py-1 rounded text-xs font-bold text-white shadow-sm",
-                                "bg-blue-600"
-                              )}
-                            >
-                              {post.category}
-                            </span>
-                            <h3
-                              className="text-white text-lg font-bold leading-tight group-hover/item:text-primary-100 transition-colors line-clamp-2 text-right w-full"
-                              dir="rtl"
-                            >
-                              {post.title}
-                            </h3>
-                          </div>
-                        </Link>
-                      ))}
-                      {/* Fill empty spots if less than 4 grid posts? Optional. For now assuming we just render what we have */}
+                      {gridPosts.length > 0 ? (
+                        gridPosts.map((post) => (
+                          <Link
+                            key={post._id}
+                            href={`/posts/${post.slug}`}
+                            className="group/item relative rounded-xl overflow-hidden h-60 lg:h-auto border border-zinc-200 dark:border-zinc-800 shadow-sm"
+                          >
+                            <div className="absolute inset-0">
+                              <Image
+                                src={
+                                  post.featuredImage ||
+                                  `https://picsum.photos/seed/${post.slug}/800/400`
+                                }
+                                alt={post.title}
+                                fill
+                                className="object-cover transition-transform duration-500 group-hover/item:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                            </div>
+                            <div className="absolute inset-0 p-4 flex flex-col justify-between items-start">
+                              <span
+                                className={cn(
+                                  "px-3 py-1 rounded text-xs font-bold text-white shadow-sm",
+                                  "bg-blue-600"
+                                )}
+                              >
+                                {post.category || "General"}
+                              </span>
+                              <h3
+                                className="text-white text-lg font-bold leading-tight group-hover/item:text-primary-100 transition-colors line-clamp-2 text-right w-full"
+                                dir="rtl"
+                              >
+                                {post.title}
+                              </h3>
+                            </div>
+                          </Link>
+                        ))
+                      ) : (
+                        <div className="col-span-2 flex items-center justify-center text-muted-foreground">
+                          No posts available
+                        </div>
+                      )}
                     </div>
 
                     {/* Right Side (Large Vertical Card) - Spans 1 column */}
@@ -115,7 +123,10 @@ export default function Hero({ posts }: { posts: Post[] }) {
                         >
                           <div className="absolute inset-0">
                             <Image
-                              src={largePost.featuredImage}
+                              src={
+                                largePost.featuredImage ||
+                                `https://picsum.photos/seed/${largePost.slug}/800/400`
+                              }
                               alt={largePost.title}
                               fill
                               className="object-cover transition-transform duration-500 group-hover/item:scale-105"
@@ -129,7 +140,7 @@ export default function Hero({ posts }: { posts: Post[] }) {
                                 "bg-blue-600"
                               )}
                             >
-                              {largePost.category}
+                              {largePost.category || "General"}
                             </span>
                             <h3
                               className="text-white text-2xl font-bold leading-tight group-hover/item:text-primary-100 transition-colors text-right w-full"

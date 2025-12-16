@@ -22,10 +22,16 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { AdminStats } from "@/lib/actions/admin-stats.actions";
 
-const navigation = [
+const getNavigation = (stats: AdminStats) => [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Posts", href: "/admin/posts", icon: FileText, badge: "new" },
+  { 
+    name: "Posts", 
+    href: "/admin/posts", 
+    icon: FileText, 
+    badge: stats.draftPosts > 0 ? stats.draftPosts.toString() : undefined 
+  },
   { name: "Media", href: "/admin/media", icon: Image },
   { name: "Categories", href: "/admin/categories", icon: FolderTree },
   { name: "Tags", href: "/admin/tags", icon: Tags },
@@ -33,7 +39,7 @@ const navigation = [
     name: "Comments",
     href: "/admin/comments",
     icon: MessageSquare,
-    badge: "5",
+    badge: stats.pendingComments > 0 ? stats.pendingComments.toString() : undefined,
   },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "AdSense", href: "/admin/adsense", icon: DollarSign },
@@ -79,12 +85,14 @@ interface AdminSidebarProps {
     image?: string | null;
     role?: string;
   };
+  stats: AdminStats;
   className?: string;
 }
 
-export function SidebarContent({ user, className }: AdminSidebarProps) {
+export function SidebarContent({ user, stats, className }: AdminSidebarProps) {
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const navigation = getNavigation(stats);
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/" });
@@ -275,10 +283,10 @@ export function SidebarContent({ user, className }: AdminSidebarProps) {
   );
 }
 
-export default function AdminSidebar({ user }: AdminSidebarProps) {
+export default function AdminSidebar({ user, stats }: AdminSidebarProps) {
   return (
     <div className="hidden lg:flex fixed inset-y-0 left-0 z-50 w-64 flex-col">
-      <SidebarContent user={user} />
+      <SidebarContent user={user} stats={stats} />
     </div>
   );
 }

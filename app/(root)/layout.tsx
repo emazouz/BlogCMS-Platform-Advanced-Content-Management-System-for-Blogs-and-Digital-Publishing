@@ -16,15 +16,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+import { getNavbarCategories } from "@/lib/actions/category.actions";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const categories = await getNavbarCategories();
+
   return (
     <div className="flex min-h-screen flex-col">
       <TopNavBar />
-      <Navbar />
+      <Navbar categories={categories} />
       <main className="flex-1">{children}</main>
       <Footer />
     </div>

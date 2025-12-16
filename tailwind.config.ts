@@ -62,8 +62,13 @@ const config: Config = {
         },
       },
       fontFamily: {
-        surgena: ["Surgena", "sans-serif"],
-        sans: ["Surgena", "system-ui", "-apple-system", "sans-serif"],
+        stanzegic: ["var(--font-stanzegic)", "sans-serif"],
+        sans: [
+          "var(--font-stanzegic)",
+          "system-ui",
+          "-apple-system",
+          "sans-serif",
+        ],
       },
       fontWeight: {
         light: "300",

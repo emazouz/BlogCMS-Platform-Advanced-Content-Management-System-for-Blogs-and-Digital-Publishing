@@ -4,6 +4,7 @@ import { FileText, Eye, Clock, Edit, Trash2, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import connectDB from "@/lib/db/mongoose";
 import { Post } from "@/models/Post";
+import { Category } from "@/models/Category";
 import { formatDistanceToNow } from "date-fns";
 import { DeletePostButton } from "./DeletePostButton";
 

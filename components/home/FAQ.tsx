@@ -7,7 +7,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { MessageCircle, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,54 +23,6 @@ interface FAQProps {
   imageSrc?: string;
   imageAlt?: string;
 }
-
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-    },
-  },
-};
-
-const imageVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.7,
-      ease: "easeOut",
-    },
-  },
-};
-
-const titleVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut",
-    },
-  },
-};
 
 export default function FAQ({
   faqs = [],
@@ -101,17 +52,11 @@ export default function FAQ({
       <div className="wrapper">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-24 items-start">
           {/* Left Column: Image (Sticky) */}
-          <motion.div
-            variants={imageVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="lg:col-span-5 relative lg:sticky lg:top-24"
-          >
+          <div className="lg:col-span-5 relative lg:sticky lg:top-24">
             <div className="relative">
               {/* Decorative background */}
               <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl blur-2xl opacity-50" />
-              
+
               {/* Image container */}
               <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl group">
                 <Image
@@ -125,17 +70,12 @@ export default function FAQ({
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 40vw"
                   priority
                 />
-                
+
                 {/* Overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
+
                 {/* Floating badge */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.5 }}
-                  className="absolute bottom-6 left-6 right-6"
-                >
+                <div className="absolute bottom-6 left-6 right-6">
                   <div className="bg-background/90 backdrop-blur-md rounded-xl p-4 shadow-lg border border-border">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -151,51 +91,34 @@ export default function FAQ({
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Right Column: Content */}
           <div className="lg:col-span-7">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-            >
+            <div>
               {/* Header */}
               <div className="mb-12 lg:mb-16">
-                <motion.h2
-                  variants={titleVariants}
-                  className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-2 text-foreground"
-                >
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-2 text-foreground">
                   {title}
-                </motion.h2>
-                <motion.h2
-                  variants={titleVariants}
-                  className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-foreground"
-                >
+                </h2>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-foreground">
                   {subtitle}
-                </motion.h2>
-                <motion.div
-                  variants={itemVariants}
-                  className="mt-4 h-1 w-20 bg-gradient-to-r from-primary to-secondary rounded-full"
-                />
+                </h2>
+                <div className="mt-4 h-1 w-20 bg-gradient-to-r from-primary to-secondary rounded-full" />
               </div>
 
               {/* FAQ Accordion */}
-              <motion.div variants={itemVariants}>
-                <Accordion type="single" collapsible className="w-full space-y-2">
+              <div>
+                <Accordion
+                  type="single"
+                  collapsible
+                  className="w-full space-y-2"
+                >
                   {faqs.slice(0, 7).map((faq, index) => (
-                    <motion.div
-                      key={index}
-                      custom={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1, duration: 0.5 }}
-                    >
+                    <div key={index}>
                       <AccordionItem
                         value={`item-${index}`}
                         className={cn(
@@ -232,16 +155,13 @@ export default function FAQ({
                           </div>
                         </AccordionContent>
                       </AccordionItem>
-                    </motion.div>
+                    </div>
                   ))}
                 </Accordion>
-              </motion.div>
+              </div>
 
               {/* Contact CTA */}
-              <motion.div
-                variants={itemVariants}
-                className="mt-12 p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-border"
-              >
+              <div className="mt-12 p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-border">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 flex-shrink-0">
                     <MessageCircle className="h-6 w-6 text-primary" />
@@ -251,15 +171,16 @@ export default function FAQ({
                       Still have questions?
                     </h3>
                     <p className="text-muted-foreground mb-4">
-                      Can't find the answer you're looking for? Please contact our friendly team.
+                      Can't find the answer you're looking for? Please contact
+                      our friendly team.
                     </p>
                     <button className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary-hover transition-colors">
                       Get in Touch
                     </button>
                   </div>
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

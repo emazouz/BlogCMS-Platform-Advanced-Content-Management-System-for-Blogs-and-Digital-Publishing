@@ -155,8 +155,8 @@ export function StatsCards() {
     return [
       {
         title: "Total Posts",
-        value: formatNumber(stats.views.total), // Using views total as placeholder
-        change: stats.views.change,
+        value: formatNumber(stats.posts.total),
+        change: stats.posts.change,
         icon: FileText,
         color: "blue",
         bgColor: "bg-blue-50 dark:bg-blue-950",
@@ -173,7 +173,7 @@ export function StatsCards() {
       },
       {
         title: "Total Visitors",
-        value: formatNumber(stats.visitors.thisMonth),
+        value: formatNumber(stats.visitors.total),
         change: stats.visitors.change,
         icon: MessageSquare,
         color: "purple",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
-import "./fonts.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { Toaster } from "@/components/ui/sonner";
@@ -21,6 +21,17 @@ export const metadata: Metadata = {
   },
 };
 
+const stanzegic = localFont({
+  src: [
+    {
+      path: "../public/fonts/StanzegicGrotesk.otf",
+      weight: "400",
+      style: "normal",
+    },
+  ],
+  variable: "--font-stanzegic",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +39,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-surgena font-medium antialiased">
+      <body
+        className={`${stanzegic.variable} font-sans font-medium antialiased`}
+      >
         <AuthProvider>
           <ThemeProvider
             attribute="class"

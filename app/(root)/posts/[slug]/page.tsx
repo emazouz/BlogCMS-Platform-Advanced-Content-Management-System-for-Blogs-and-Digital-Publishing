@@ -7,6 +7,7 @@ import { Clock, Eye, Calendar } from "lucide-react";
 import connectDB from "@/lib/db/mongoose";
 import { Post } from "@/models/Post";
 import "@/models/Category"; // Ensure registration
+import "@/models/Tag"; // Ensure registration
 import "@/models/User"; // Ensure registration
 import AdBanner from "@/components/ads/AdBanner";
 import ShareButtons from "@/components/posts/ShareButtons";

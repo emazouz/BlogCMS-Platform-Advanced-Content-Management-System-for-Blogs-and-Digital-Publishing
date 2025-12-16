@@ -10,7 +10,7 @@
     "seed": "ts-node -r tsconfig-paths/register -r dotenv/config --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/seed.ts",
     "seed-posts": "ts-node -r tsconfig-paths/register -r dotenv/config --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/seed-posts.ts",
     "seed-faqs": "ts-node -r tsconfig-paths/register -r dotenv/config --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/seed-faqs.ts",
-    "seed-categories": "ts-node -r tsconfig-paths/register -r dotenv/config --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/update-category-items.ts",
+    "seed-categories": "ts-node -r tsconfig-paths/register -r dotenv/config --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/seed-categories.ts",
     "verify-categories": "ts-node -r tsconfig-paths/register -r dotenv/config --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/quick-verify.ts"
   },
   "dependencies": {

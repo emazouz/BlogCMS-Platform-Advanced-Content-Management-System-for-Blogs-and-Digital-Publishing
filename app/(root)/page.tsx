@@ -30,10 +30,10 @@ async function getData() {
     testimonials,
     faqs,
   ] = await Promise.all([
-    // 1. Latest Posts
+    // 1. Latest Posts (15 for Hero carousel: 3 slides × 5 posts)
     Post.find({ status: "published" })
       .sort({ createdAt: -1 })
-      .limit(6)
+      .limit(15)
       .populate("author", "username")
       .populate("category", "name"),
 
@@ -67,6 +67,9 @@ async function getData() {
     posts.map((post) => ({
       ...post,
       category: post.category?.name || "General",
+      featuredImage:
+        post.featuredImage ||
+        `https://picsum.photos/seed/${post.slug || post._id}/800/400`,
     }));
 
   return {

@@ -93,7 +93,8 @@ const TEAM_MEMBERS = [
     id: "alex",
     name: "Alex Rivera",
     role: "Founder & CEO",
-    image: "https://picsum.photos/seed/alex/400/400",
+    image:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
     bio: "Former journalist turned developer. Obsessed with typography and clean code.",
     social: {
       twitter: "#",
@@ -105,7 +106,8 @@ const TEAM_MEMBERS = [
     id: "sarah",
     name: "Sarah Chen",
     role: "Head of Content",
-    image: "https://picsum.photos/seed/sarah/400/400",
+    image:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
     bio: "Believes every story deserves to be heard. Champion of underrepresented voices.",
     social: {
       twitter: "#",
@@ -117,7 +119,8 @@ const TEAM_MEMBERS = [
     id: "jordan",
     name: "Jordan Smith",
     role: "Lead Engineer",
-    image: "https://picsum.photos/seed/jordan/400/400",
+    image:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
     bio: "Architect of the platform. If it's not sub-100ms, it's not fast enough.",
     social: {
       twitter: "#",
@@ -159,10 +162,12 @@ export default function AboutUs() {
     <div className="min-h-screen bg-background font-sans selection:bg-primary selection:text-white">
       <HeroSection />
       <RapidGrowth />
+      <MissionVisionSection />
       <BeliefsSection />
       <TimelineSection />
       <TeamSection />
       <FAQSection />
+      <CTASection />
     </div>
   );
 }
@@ -172,7 +177,7 @@ function HeroSection() {
     <section className="relative h-[60vh] md:h-[calc(100vh-6rem)] flex items-center justify-center overflow-hidden mb-12">
       <div className="absolute inset-0">
         <Image
-          src="https://picsum.photos/seed/about-us/1920/800"
+          src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&h=800&fit=crop"
           alt="About Us - Team collaboration"
           fill
           sizes="100vw"
@@ -220,7 +225,7 @@ function HeroSection() {
             size="lg"
             className="rounded-full px-8 h-12 text-base border-white text-white hover:bg-white hover:text-black bg-transparent"
           >
-            <Link href="/contact">Get in Touch</Link>
+            <Link href="/contact-us">Get in Touch</Link>
           </Button>
         </div>
       </div>
@@ -474,6 +479,128 @@ function FAQSection() {
             </AccordionItem>
           ))}
         </Accordion>
+      </div>
+    </section>
+  );
+}
+
+function MissionVisionSection() {
+  return (
+    <section className="py-24 bg-gradient-to-b from-background to-muted/20">
+      <div className="wrapper max-w-6xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          {/* Mission */}
+          <article className="relative p-10 rounded-3xl bg-card border border-border shadow-lg hover:shadow-xl transition-shadow">
+            <div className="absolute top-0 left-0 w-20 h-20 bg-primary/10 rounded-br-3xl" />
+            <div className="relative">
+              <h2 className="text-3xl font-bold mb-6 text-foreground">
+                Our Mission
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                To democratize digital publishing by providing a platform where
+                every voice can be heard, every story can be told, and every
+                writer can thrive. We believe in the power of words to inspire,
+                educate, and connect people across the globe.
+              </p>
+            </div>
+          </article>
+
+          {/* Vision */}
+          <article className="relative p-10 rounded-3xl bg-card border border-border shadow-lg hover:shadow-xl transition-shadow">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-secondary/10 rounded-bl-3xl" />
+            <div className="relative">
+              <h2 className="text-3xl font-bold mb-6 text-foreground">
+                Our Vision
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                To become the world's most trusted and innovative blogging
+                platform, where quality content meets cutting-edge technology.
+                We envision a future where writers are empowered with the tools
+                they need to create, share, and monetize their work seamlessly.
+              </p>
+            </div>
+          </article>
+        </div>
+
+        {/* Core Values */}
+        <div className="mt-16">
+          <h3 className="text-2xl font-bold text-center mb-10">
+            Our Core Values
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="text-center p-6">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-2xl font-bold text-primary">1</span>
+              </div>
+              <h4 className="font-semibold mb-2">Authenticity</h4>
+              <p className="text-sm text-muted-foreground">
+                We value genuine voices and original content
+              </p>
+            </div>
+            <div className="text-center p-6">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-2xl font-bold text-primary">2</span>
+              </div>
+              <h4 className="font-semibold mb-2">Innovation</h4>
+              <p className="text-sm text-muted-foreground">
+                Constantly pushing boundaries in technology
+              </p>
+            </div>
+            <div className="text-center p-6">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-2xl font-bold text-primary">3</span>
+              </div>
+              <h4 className="font-semibold mb-2">Community</h4>
+              <p className="text-sm text-muted-foreground">
+                Building connections between writers and readers
+              </p>
+            </div>
+            <div className="text-center p-6">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-2xl font-bold text-primary">4</span>
+              </div>
+              <h4 className="font-semibold mb-2">Excellence</h4>
+              <p className="text-sm text-muted-foreground">
+                Delivering the highest quality experience
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CTASection() {
+  return (
+    <section className="py-24 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      <div className="wrapper max-w-4xl text-center">
+        <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          Ready to Start Your Journey?
+        </h2>
+        <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+          Join thousands of writers who are already sharing their stories with
+          the world. Create your account today and start publishing in minutes.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button asChild size="lg" className="rounded-full px-8 h-14 text-lg">
+            <Link href="/auth/signup">
+              Get Started Free
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="rounded-full px-8 h-14 text-lg"
+          >
+            <Link href="/posts">Explore Content</Link>
+          </Button>
+        </div>
+        <p className="mt-8 text-sm text-muted-foreground">
+          No credit card required • Free forever • Cancel anytime
+        </p>
       </div>
     </section>
   );
