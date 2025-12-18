@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Star, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { Variants, motion } from "framer-motion";
 import { Post as PostType } from "@/types/post";
 
 // Constants
@@ -23,7 +23,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
@@ -35,7 +35,7 @@ const itemVariants = {
   },
 };
 
-const headerVariants = {
+const headerVariants: Variants = {
   hidden: { opacity: 0, y: -10 },
   visible: {
     opacity: 1,
@@ -49,7 +49,7 @@ const headerVariants = {
 
 // Helper function for safe ID conversion
 const getPostId = (post: PostType): string => {
-  return typeof post._id === "string" ? post._id : post._id.toString();
+  return String(post._id);
 };
 
 interface HighestRatedProps {

@@ -45,6 +45,4 @@ TagSchema.pre("save", async function () {
   }
 });
 
-TagSchema.index({ slug: 1 });
-
 export const Tag = models.Tag || model<ITag>("Tag", TagSchema);

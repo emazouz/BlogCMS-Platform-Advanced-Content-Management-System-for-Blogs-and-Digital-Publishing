@@ -36,7 +36,5 @@ const SubscriberSchema = new Schema<ISubscriber>(
   }
 );
 
-SubscriberSchema.index({ email: 1 });
-
 export const Subscriber =
   models.Subscriber || model<ISubscriber>("Subscriber", SubscriberSchema);

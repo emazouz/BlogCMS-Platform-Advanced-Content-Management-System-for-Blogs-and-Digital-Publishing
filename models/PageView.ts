@@ -37,7 +37,6 @@ const PageViewSchema = new Schema<IPageView>(
     date: {
       type: Date,
       required: true,
-      index: true,
     },
     sessionIds: {
       type: [String],

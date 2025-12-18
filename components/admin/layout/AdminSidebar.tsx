@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -26,11 +26,11 @@ import type { AdminStats } from "@/lib/actions/admin-stats.actions";
 
 const getNavigation = (stats: AdminStats) => [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { 
-    name: "Posts", 
-    href: "/admin/posts", 
-    icon: FileText, 
-    badge: stats.draftPosts > 0 ? stats.draftPosts.toString() : undefined 
+  {
+    name: "Posts",
+    href: "/admin/posts",
+    icon: FileText,
+    badge: stats.draftPosts > 0 ? stats.draftPosts.toString() : undefined,
   },
   { name: "Media", href: "/admin/media", icon: Image },
   { name: "Categories", href: "/admin/categories", icon: FolderTree },
@@ -39,7 +39,8 @@ const getNavigation = (stats: AdminStats) => [
     name: "Comments",
     href: "/admin/comments",
     icon: MessageSquare,
-    badge: stats.pendingComments > 0 ? stats.pendingComments.toString() : undefined,
+    badge:
+      stats.pendingComments > 0 ? stats.pendingComments.toString() : undefined,
   },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "AdSense", href: "/admin/adsense", icon: DollarSign },
@@ -49,7 +50,7 @@ const getNavigation = (stats: AdminStats) => [
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
-const navItemVariants = {
+const navItemVariants: Variants = {
   hidden: { x: -20, opacity: 0 },
   visible: (i: number) => ({
     x: 0,
@@ -58,7 +59,7 @@ const navItemVariants = {
   }),
 };
 
-const userMenuVariants = {
+const userMenuVariants: Variants = {
   hidden: { opacity: 0, y: 10, scale: 0.95 },
   visible: {
     opacity: 1,
@@ -69,7 +70,7 @@ const userMenuVariants = {
   exit: { opacity: 0, y: 10, scale: 0.95, transition: { duration: 0.15 } },
 };
 
-const badgeVariants = {
+const badgeVariants: Variants = {
   initial: { scale: 0 },
   animate: {
     scale: 1,

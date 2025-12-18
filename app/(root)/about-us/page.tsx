@@ -21,7 +21,18 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const BELIEFS = [
+interface Belief {
+  id: string;
+  title: string;
+  description: string;
+  icon: any;
+  iconColor: string;
+  className: string;
+  large?: boolean;
+  wide?: boolean;
+}
+
+const BELIEFS: Belief[] = [
   {
     id: "speed",
     title: "Speed is a Feature",
@@ -59,7 +70,7 @@ const BELIEFS = [
     className: "md:col-span-2 bg-zinc-50 dark:bg-zinc-900/50",
     wide: true,
   },
-] as const;
+];
 
 const TIMELINE = [
   {
@@ -262,7 +273,7 @@ function BeliefsSection() {
   );
 }
 
-function LargeBeliefCard({ belief }: { belief: (typeof BELIEFS)[0] }) {
+function LargeBeliefCard({ belief }: { belief: Belief }) {
   const Icon = belief.icon;
   return (
     <article
@@ -289,7 +300,7 @@ function LargeBeliefCard({ belief }: { belief: (typeof BELIEFS)[0] }) {
   );
 }
 
-function WideBeliefCard({ belief }: { belief: (typeof BELIEFS)[0] }) {
+function WideBeliefCard({ belief }: { belief: Belief }) {
   const Icon = belief.icon;
   return (
     <article
@@ -312,7 +323,7 @@ function WideBeliefCard({ belief }: { belief: (typeof BELIEFS)[0] }) {
   );
 }
 
-function BeliefCard({ belief }: { belief: (typeof BELIEFS)[0] }) {
+function BeliefCard({ belief }: { belief: Belief }) {
   const Icon = belief.icon;
   return (
     <article
